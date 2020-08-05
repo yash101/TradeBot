@@ -2,8 +2,9 @@ const express = require('express');
 const axios = require('axios');
 const cfg = require('../config');
 const fs = require('fs');
-const { url } = require('inspector');
 const qs = require('qs');
+
+let app = require('../app');
 
 let router = express.Router();
 let tdCred = null;
@@ -12,11 +13,9 @@ fs.readFile('credentials/tdameritrade.json', (err, data) => {
     tdCred = JSON.parse(data);
 });
 
-writeTdCredentials = function() {
+let writeTdCredentials = function() {
     fs.writeFileSync('credentials/tdameritrade.json', JSON.stringify(tdCred));
 };
-
-let accessToken = null;
 
 /**
  * \brief Begins login with TD Ameritrade
@@ -59,7 +58,7 @@ router.get('/', async (req, res, next) => {
                 }
             });
 
-            accessToken = resp.data.access_token;
+            app.accessToken = resp.data.access_token;
             tdCred.refreshToken = resp.data.refresh_token;
 
             writeTdCredentials();
@@ -93,7 +92,7 @@ router.get('/refresh_access_token', async (req, res, next) => {
             }
         });
 
-        accessToken = resp.data.access_token;
+        app.accessToken = resp.data.access_token;
 
         res.json(resp.data);
     } catch(err) {
@@ -123,7 +122,7 @@ router.get('/refresh_refresh_token', async (req, res, next) => {
             }
         });
 
-        accessToken = resp.data.access_token;
+        app.accessToken = resp.data.access_token;
         tdCred.refreshToken = resp.data.refresh_token;
 
         res.json(resp.data);
