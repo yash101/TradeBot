@@ -27,6 +27,7 @@ def redirectAuth():
 @server.route('/token')
 def getTokens():
     code = request.args.get('code')
+    print(code)
 
     params = {
         'grant_type': 'authorization_code',
@@ -48,3 +49,7 @@ def getTokens():
 
     cfg.setAccessToken(access_token)
     cfg.setRefreshToken(refresh_token)
+
+    return {'success': True}
+
+server.run('127.0.0.1', 9000, True)

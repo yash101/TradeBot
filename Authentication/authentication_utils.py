@@ -19,11 +19,11 @@ class Config():
     
     def writeConfig(self):
         with open(self.getConfigUri(), 'w') as f:
-            json.dump(self.config, f)
+            json.dump(self.config, f, indent=4, sort_keys=True)
 
     def getConsumerKey(self):
         self.readConfig()
-        return self.config['consumer_key']
+        return self.config['consumer_key'] + '@AMER.OAUTHAP'
     
     def setConsumerKey(self, k):
         self.readConfig()
@@ -32,7 +32,7 @@ class Config():
     
     def getRedirectUri(self):
         self.readConfig()
-        return self.config['redirect_url'] + '@AMER.OAUTHAP'
+        return self.config['redirect_url']
     
     def setRedirectUri(self, u):
         self.readConfig()
