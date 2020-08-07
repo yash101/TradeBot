@@ -1,5 +1,3 @@
-from Authentication.tdconfig import Config
-from Tools.accounts import Accounts
 import requests
 
 class User():

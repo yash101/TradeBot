@@ -1,10 +1,12 @@
-from Authentication.tdconfig import Config
-from Tools.trading import Position
 import requests
 import json
 
+from src.td_config import TdConfig
+
 class Account():
-    def __init__(self, data = None):
+    def __init__(self, data = None, tdcred = None):
+        self.tdcred = tdcred
+
         self.accountId = None
         self.accountType = None
 
@@ -20,6 +22,9 @@ class Account():
         self.currentBalances = None
         self.projectedBalances = None
 
+        if data is not None:
+            self.importData(data)
+
     def importData(self, data):
         def get(k):
             if k in data:
@@ -33,17 +38,20 @@ class Account():
         self.isDayTrader = get('isDayTrader')
         
 
-        self.accountId = data['accountId']
-        self.accountType = data['type']
-        self.roundTrips = data['roundTrips']
-        self.isDayTrader = data['isDayTrader']
-        self.isClosingOnlyRestricted = data['isClosingOnlyRestricted']
+        self.accountId = get('accountId')
+        self.accountType = get('type')
+        self.accountType = get('type')
+        self.roundTrips = get('roundTrips')
+        self.isDayTrader = get('isDayTrader')
+        self.isClosingOnlyRestricted = get('isClosingOnlyRestricted')
 
-        self.positions = data['positions']
+        self.positions = get('positions')
 
-        self.orderStrategies = data['orderStrategies']
+        self.orderStrategies = get('orderStrategies')
 
-        self.initialBalances = data['initial']
+        self.initialBalances = get('initialBalances')
+        self.currentBalances = get('currentBalances')
+        self.projectedBalances = get('projectedBalances')
     
     def getOrders(
         self,
@@ -64,29 +72,49 @@ class Account():
         pass
 
     def updateAccount(self):
-        pass
-
-
-class Accounts():
-    def __init__(self):
-        # API endpoint: https://api.tdameritrade.com/v1/accounts
-        self.config = Config()
-    
-    def getAccounts(self):
+        uri = f'https://api.tdameritrade.com/v1/accounts/{self.accountId}'
         req = requests.get(
-            'https://api.tdameritrade.com/v1/accounts',
+            uri,
             params = {'fields': 'positions,orders'},
-            headers = {
-                'Authorization': self.config.getAccessToken()
-            }
+            headers = {'Authorization': self.tdcred.getAccessToken()}
         )
 
-        blob = req.json()
+        print(req.json())
 
-        return blob
+        self.importData(req.json())
+
+class Accounts():
+    def __init__(self, tdconfig):
+        self.tdcred = tdconfig
+        self.accounts = None
+    
+    def getAccounts(self, cached = False, raw = False):
+        if not cached or self.accounts is None:
+            print('sending request')
+            req = requests.get(
+                'https://api.tdameritrade.com/v1/accounts',
+                params = {'fields': 'positions,orders'},
+                headers = {
+                    'Authorization': self.tdcred.getAccessToken()
+                }
+            )
+
+            self.accountsRaw = req.json()
+            self.accounts = [
+                Account(
+                    tdcred = self.tdcred,
+                    data = acct['securitiesAccount']
+                ) for acct in self.accountsRaw
+            ]
+
+            if raw:
+                return self.accountsRaw
+            
+        return self.accounts
 
 if __name__ == '__main__':
-    a = Accounts()
-    a.config.renewAccessToken() # make sure access token is valid
+    cfg = TdConfig()
+    cfg.renewAccessToken()
+    a = Accounts(cfg)
     with open('accounts.json', 'w') as f:
-        json.dump(a.getAccounts(), f, indent = 4)
+        json.dump(a.getAccounts(raw = True, cached = False), f, indent = 4)
