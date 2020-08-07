@@ -1,6 +1,11 @@
 class Position():
     def __init__(self):
-        pass
+        self.quantity = 0
+        self.averagePrice = 0
+        self.pl = 0
+        self.pl_percent = 0
+        self.marketValue = 0
+        self.instrument = None
 
 
 # these following classes will likely be discarded
