@@ -1,7 +1,7 @@
 import json
 import requests
 
-class Config():
+class TdConfig():
     def __init__(self):
         self.config = {
             'consumer_key': '',

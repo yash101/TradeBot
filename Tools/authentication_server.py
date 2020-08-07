@@ -4,12 +4,13 @@ import urllib
 import json
 import pprint
 
-from Authentication.tdconfig import Config
+from TradeBot.src.tradebot_config import TradeBotConfig
+from TradeBot.src.td_config import TdConfig
 
 if __name__ == "__main__":
     server = Flask(__name__)
 
-    cfg = Config()
+    cfg = TdConfig()
 
     # redirect to td ameritrade signin page
     @server.route('/')
