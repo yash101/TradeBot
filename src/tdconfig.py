@@ -41,7 +41,7 @@ class Config():
     
     def getAccessToken(self):
         self.readConfig()
-        return self.config['access_token']
+        return 'Bearer ' + self.config['access_token']
     
     def setAccessToken(self, t):
         self.readConfig()
@@ -59,9 +59,10 @@ class Config():
     
     def renewAccessToken(self):
         params = {
-            'grant_type': 'authorization_code',
+            'grant_type': 'refresh_token',
             'refresh_token': self.getRefreshToken(),
-            'client_id': self.getConsumerKey()
+            'client_id': self.getConsumerKey(),
+            'redirect_uri': self.getRedirectUri()
         }
 
         req = requests.post(
@@ -78,7 +79,8 @@ class Config():
             'grant_type': 'refresh_token',
             'refresh_token': self.getRefreshToken(),
             'access_type': 'offline',
-            'client_id': self.getConsumerKey()
+            'client_id': self.getConsumerKey(),
+            'redirect_uri': self.getRedirectUri()
         }
 
         req = requests.post(
