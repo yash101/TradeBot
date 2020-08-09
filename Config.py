@@ -1,3 +1,6 @@
-class Config():
-    def __init__(self):
-        
+from Broker import TdAmeritrade
+
+class TradeBotConfig():
+    version = '0.0.0'
+    brokerCredsFile = 'Credentials/tdameritrade.json'
+    broker = TdAmeritrade.Broker
