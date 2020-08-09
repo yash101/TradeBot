@@ -7,6 +7,7 @@ class SecurityType(Enum):
     FIXED_INCOME = 3
     CASH = 4
     OPTION = 5
+    OPTION_STRATEGY = 6
 
 class Security():
     def __init__(self):
@@ -72,35 +73,6 @@ class FixedIncome(Security):
         if newFactor is not None:
             self._factor = newFactor
 
-class OptionDirection(Enum):
-    CALL = 0
-    PUT = 1
-
-class Option(Security):
-    def __init__(self):
-        self.securityType(SecurityType.OPTION)
-        self.option_type = None
-        self.strike_price = 0
-        self.underlying_symbol = None
-    
-    def optionType(self, newType = None):
-        if newType is not None:
-            self.option_type = newType
-        
-        return self.option_type
-    
-    def strike(self, newStrike = None):
-        if newStrike is not None:
-            self.strike_price = newStrike
-        
-        return self.strike_price
-    
-    def underlyingSymbol(self, newSymbol = None):
-        if newSymbol is not None:
-            self.underlying_symbol = newSymbol
-        
-        return self.underlying_symbol
-
 class Position():
     def __init__(self):
         self.shortQuantity = 0
@@ -108,4 +80,3 @@ class Position():
         self.security = None
         self.currentPrice = 0
         self.averageOpenPrice = 0
-        
