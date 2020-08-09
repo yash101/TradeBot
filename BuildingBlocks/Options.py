@@ -93,8 +93,31 @@ class OptionStrategy():
         self.options[1].underlyingSymbol(symbol)
         self.options[1].premium(longPremium)
 
+        # probably inaccurate
         return {
             'max_loss': shortPremium + longPremium,
             'max_profit': shortStrike - longStrike - (shortPremium + longPremium),
             'breakeven': longStrike + shortPremium + longPremium
+        }
+    
+    def bearPutSpread(self, shortStrike, longStrike, shortPremium, longPremium, symbol):
+        self.options = [Option()] * 2
+        
+        self.options[0].strike(shortStrike)
+        self.options[0].optionType(OptionDirection.SHORT_PUT)
+        self.options[0].symbol(symbol)
+        self.options[0].underlyingSymbol(symbol)
+        self.options[0].premium(shortPremium)
+
+        self.options[1].strike(longStrike)
+        self.options[1].optionType(OptionDirection.LONG_PUT)
+        self.options[1].symbol(symbol)
+        self.options[1].underlyingSymbol(symbol)
+        self.options[1].premium(longPremium)
+
+        # probably inaccurate
+        return {
+            'max_loss': longStrike - shortStrike - (shortPremium + longPremium),
+            'max_profit': shortPremium - longPremium,
+            'breakeven': 0
         }
