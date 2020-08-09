@@ -1,4 +1,4 @@
-from TradeBot.Fundamentals.Securities import Security, SecurityType, Position
+from TradeBot.BuildingBlocks.Securities import Security, SecurityType, Position
 from enum import Enum
 
 class OptionDirection(Enum):
