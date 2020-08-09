@@ -7,5 +7,10 @@ class TradeBot():
     def initializeBroker(self):
         self.broker.authenticator.loadCredentials()
 
+        # authenticates
         if self.broker.authenticator.requiresAuthentication():
             self.broker.authenticator.performAuthentication()
+        else:
+            return False
+        
+        
