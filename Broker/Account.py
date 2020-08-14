@@ -68,3 +68,13 @@ class Account():
             self.day_trades_available = avail
 
         return self.day_trades_available
+    
+    def accountType(self, tp = None):
+        if tp is not None:
+            self.account_type = tp
+        
+        return self.account_type
+    
+    def positions(self):
+        return self.positions
+    
