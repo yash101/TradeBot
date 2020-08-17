@@ -1,8 +1,12 @@
 class User():
     def __init__(
         self,
-        firstName = None,
-        lastName = None,
-        
+        brokerage
     ):
-        self.firstName = None
+        self.brokerage = brokerage
+        self.userId = None
+        self.accounts = []
+
+    
+    def fetch(self):
+        pass

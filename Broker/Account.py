@@ -8,6 +8,7 @@ class AccountType(Enum):
 class Account():
     def __init__(
         self,
+        broker,
         accountIdentifier = None,
         nonMarginBuyingPower = 0,
         totalBuyingPower = 0,
@@ -15,66 +16,18 @@ class Account():
         dayTradingAllowed = False,
         dayTradesAvailable = 0,
         positions = [],
-        accountType = AccountType.CASH
+        accountType = AccountType.UNDEFINED
     ):
-        self.account_identifier = accountIdentifier
+        self.brokerage = broker
+        self.accountId = accountIdentifier
+        self.nonMarginBuyingPower = nonMarginBuyingPower
+        self.totalBuyingPower = totalBuyingPower
+        self.accountValue = accountValue
+        self.dayTradingAllowed = dayTradingAllowed
+        self.dayTradesAvailable = dayTradesAvailable
+        self.accountType = accountType
 
-        self.non_margin_buying_power = nonMarginBuyingPower
-        self.total_buying_power = totalBuyingPower
-        self.account_value = accountValue
-        
-        self.day_trading_allowed = dayTradingAllowed
-        self.day_trades_available = dayTradesAvailable
-
-        self.account_type = accountType
-
-        self._positions = []
+        self.positions = []
     
-    def fetchUpdates(self):
+    def fetch(self):
         pass
-
-    def accountIdentifier(self, newId = None):
-        if newId is not None:
-            self.account_identifier = newId
-        
-        return self.account_identifier
-    
-    def nonMarginBuyingPower(self, bp = None):
-        if bp is not None:
-            self.non_margin_buying_power = bp
-        
-        return self.non_margin_buying_power
-    
-    def totalBuyingPower(self, bp = None):
-        if bp is not None:
-            self.total_buying_power = bp
-        
-        return self.total_buying_power
-    
-    def accountValue(self, val = None):
-        if val is not None:
-            self.account_value = val
-        
-        return self.account_value
-    
-    def dayTradingAllowed(self, allowed = None):
-        if allowed is not None:
-            self.day_trading_allowed = allowed
-        
-        return self.day_trading_allowed
-    
-    def dayTradesAvailable(self, avail = None):
-        if avail is not None:
-            self.day_trades_available = avail
-
-        return self.day_trades_available
-    
-    def accountType(self, tp = None):
-        if tp is not None:
-            self.account_type = tp
-        
-        return self.account_type
-    
-    def positions(self):
-        return self.positions
-    
