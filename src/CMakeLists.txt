@@ -6,9 +6,17 @@ set(SOURCES ${SOURCES})
 pkg_check_modules(QuantLib REQUIRED quantlib)
 
 add_executable(${BINARY} ${SOURCES})
+
 target_link_libraries(${BINARY} ${QuantLib_LIBRARIES})
 target_include_directories(${BINARY} PUBLIC ${QuantLib_INCLUDE_DIRS})
 
+target_link_libraries(${BINARY} ${SOCI_LIBRARIES})
+target_include_directories(${BINARY} PUBLIC ${SOCI_INCLUDE_DIRS})
+
 add_library(${BINARY}_lib STATIC ${SOURCES})
+
 target_link_libraries(${BINARY}_lib ${QuantLib_LIBRARIES})
 target_include_directories(${BINARY}_lib PUBLIC ${QuantLib_INCLUDE_DIRS})
+
+target_link_libraries(${BINARY}_lib ${SOCI_LIBRARIES})
+target_include_directories(${BINARY}_lib PUBLIC ${SOCI_INCLUDE_DIRS})
