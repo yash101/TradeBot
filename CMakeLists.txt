@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(TradeBot CXX)
 
-find_package(PkgConfig)
-include(cmake/FindSOCI.cmake)
+find_package(PkgConfig REQUIRED)
+# include(cmake/FindSOCI.cmake REQUIRED)
 
 include(GNUInstallDirs)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
