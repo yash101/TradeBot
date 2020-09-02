@@ -4,5 +4,7 @@
 - Boost
 - QuantLib
 - SOCI
-- Curl
 - JSON
+- cpp-netlib
+- OpenSSL
+- zlib
