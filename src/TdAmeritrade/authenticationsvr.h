@@ -3,6 +3,8 @@
 
 #include <httplib.h>
 
+#include <tuple>
+
 namespace tb
 {
     namespace tdameritrade
@@ -12,6 +14,10 @@ namespace tb
         private:
             httplib::Server web_server;
         public:
+            TdOauthAgent();
+            virtual ~TdOauthAgent();
+
+            std::tuple<bool, std::string, std::string> authenticate(std::string redirect_uri, std::string consumer_key);
         };
     }
 }

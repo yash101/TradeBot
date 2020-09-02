@@ -5,6 +5,8 @@
 
 using json = nlohmann::json;
 
+
+// this code can be built as an executable
 #ifdef BUILD_AS_EXECUTABLE
 
 int main(int argc, char** argv)
@@ -14,17 +16,21 @@ int main(int argc, char** argv)
 
 #endif
 
-// note: you fucked up. this belongs in the header
-namespace tb
+tb::tdameritrade::TdOauthAgent::TdOauthAgent()
 {
-    namespace broker_tdameritrade
+    web_server.Get("/", [](const httplib::Request& req, httplib::Response& res)
     {
-        class TdOauthAgent
-        {
-        private:
-            httplib::Server server;
-        
-        public:
-        };
-    }
+        res.set_redirect("/redirect_uri");
+    });
+
+    web_server.Get("")
+}
+
+tb::tdameritrade::TdOauthAgent::~TdOauthAgent()
+{
+}
+
+std::tuple<bool, std::string, std::string>
+authenticate(std::string redirect_uri, std::string consumer_key)
+{
 }
