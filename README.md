@@ -4,7 +4,7 @@
 - Boost
 - QuantLib
 - SOCI
-- JSON
+- JSON - nlohmann
 - cpp-netlib
 - OpenSSL
 - zlib
