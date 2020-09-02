@@ -8,11 +8,21 @@ namespace tb
 {
     namespace tools
     {
-        std::vector<std::string>
-        split_string(std::string& str, std::string split);
+        std::vector<
+            std::string
+        >
+        split_string(
+            std::string& str,
+            std::string split
+        );
 
         std::string
-        string_join(std::vector<std::string>& strings);
+        string_join(
+            std::vector<
+                std::string
+            >& strings,
+            std::string concatenator
+        );
     }
 }
 

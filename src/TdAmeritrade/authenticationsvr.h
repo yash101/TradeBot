@@ -17,7 +17,8 @@ namespace tb
             TdOauthAgent();
             virtual ~TdOauthAgent();
 
-            std::tuple<bool, std::string, std::string> authenticate(std::string redirect_uri, std::string consumer_key);
+            std::tuple<bool, std::string, std::string>
+            authenticate(std::string redirect_uri, std::string consumer_key);
         };
     }
 }
