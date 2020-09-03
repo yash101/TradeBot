@@ -18,8 +18,8 @@ namespace tb
             std::unordered_map<std::string, std::string> params
         );
 
-        std::string urldecode(std::string& in);
-        std::string urlencode(std::string& in);
+        std::string urldecode(std::string in);
+        std::string urlencode(std::string in);
     }
 }
 

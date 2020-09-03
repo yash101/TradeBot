@@ -23,7 +23,6 @@ tb::tdameritrade::TdOauthAgent::TdOauthAgent()
     });
 
     web_server.Get("/redirect_uri", [](const httplib::Request& req, httplib::Response& res) {
-        httplib::Params::
     });
 }
 

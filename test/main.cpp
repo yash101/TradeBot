@@ -1,3 +1,5 @@
+#include "main.h"
+
 #include "gtest/gtest.h"
 
 using namespace testing;
