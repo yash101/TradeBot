@@ -8,6 +8,10 @@ tb::tools::split_string(
     std::string split
 )
 {
+    std::vector<std::string> strings;
+
+    std::string::iterator str_beg;
+    std::string::iterator str_end;
 }
 
 std::string
