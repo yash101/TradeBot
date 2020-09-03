@@ -23,6 +23,10 @@ namespace tb
             >& strings,
             std::string concatenator
         );
+
+        char read_hex(char hex);
+
+        char to_hex(char num, bool capitalize);
     }
 }
 

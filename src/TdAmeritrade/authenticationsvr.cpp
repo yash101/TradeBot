@@ -18,12 +18,13 @@ int main(int argc, char** argv)
 
 tb::tdameritrade::TdOauthAgent::TdOauthAgent()
 {
-    web_server.Get("/", [](const httplib::Request& req, httplib::Response& res)
-    {
+    web_server.Get("/", [](const httplib::Request& req, httplib::Response& res) {
         res.set_redirect("/redirect_uri");
     });
 
-    web_server.Get("")
+    web_server.Get("/redirect_uri", [](const httplib::Request& req, httplib::Response& res) {
+        httplib::Params::
+    });
 }
 
 tb::tdameritrade::TdOauthAgent::~TdOauthAgent()
