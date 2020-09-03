@@ -4,10 +4,7 @@
 #include <vector>
 #include <sstream>
 #include <string>
-
 #include <cstring>
-
-#include <iostream>
 
 std::unordered_map<std::string, std::string>
 tb::tools::parse_params(
@@ -23,8 +20,14 @@ tb::tools::parse_params(
     while (std::getline(stream, item, '&'))
     {
         // igore this trash
-        if (item.size() == 0 || item.front() == '=')
+        if (item.size() == 0)
             continue;
+
+        if (item.front() == '=')
+        {
+            parameters[""] = urldecode(item.substr(1));
+            continue;
+        }
 
         std::string key, value = "";
 
@@ -82,13 +85,13 @@ tb::tools::urldecode(
             auto first = it + 1;
             auto second = it + 2;
 
-            if (first + 1 == in.end() || second + 1 == in.end())
+            if (first == in.end() || second == in.end())
             {
                 strm << *it;
             }
             else
             {
-                strm << tb::tools::read_hex(*first) * 16 + tb::tools::read_hex(*second);
+                strm << char(tb::tools::read_hex(*first) * 16 + tb::tools::read_hex(*second));
                 it += 2;
             }
         }

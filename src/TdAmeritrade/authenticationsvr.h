@@ -13,12 +13,19 @@ namespace tb
         {
         private:
             httplib::Server web_server;
+            std::string listen_ip, redirect_uri, consumer_key, authorization_code;
+            short listen_port;
         public:
             TdOauthAgent();
             virtual ~TdOauthAgent();
 
-            std::tuple<bool, std::string, std::string>
-            authenticate(std::string redirect_uri, std::string consumer_key);
+            std::tuple<bool, std::string>
+            authenticateOAuth(
+                std::string listen_ip,
+                short listen_port,
+                std::string redirect_uri,
+                std::string consumer_key
+            );
         };
     }
 }
