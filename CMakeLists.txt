@@ -17,10 +17,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
 endif()
 
-# we can use pkg-config instead
-# include(cmake/quantlib.cmake)
-# fetch_quantlib(${PROJECT_SOURCE_DIR}/cmake ${PROJECT_BINARY_DIR}/QuantLib)
-
 add_subdirectory(src)
 
 include(cmake/googletest.cmake)
