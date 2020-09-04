@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS user (
+	uid NOT NULL SERIAL PRIMARY KEY,
+	email VARCHAR(320),
+	first_name VARCHAR(256),
+	last_name VARCHAR(256)
+);
