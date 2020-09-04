@@ -90,6 +90,26 @@ namespace tb
 
 			static PostgresConnectionPool& getDefaultPool();
 		};
+
+		class PostgresConnectionGuard
+		{
+		private:
+
+			PostgresConnectionPool* pool;
+			PostgresConnection* connection;
+
+		public:
+
+			PostgresConnectionGuard(
+				PostgresConnectionPool* pool,
+				PostgresConnection* conn
+			);
+
+			virtual ~PostgresConnectionGuard();
+
+			PGconn* operator()();
+
+		};
 	}
 }
 

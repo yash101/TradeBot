@@ -246,8 +246,37 @@ static tb::db::PostgresConnectionPool default_pool(
 	DB_PASSWORD
 );
 
+static bool initialized = false;
+
 tb::db::PostgresConnectionPool&
 tb::db::PostgresConnectionPool::getDefaultPool()
 {
+	if (!initialized)
+	{
+		default_pool.setPoolSize(DEFAULT_DB_CONN_POOL_SIZE);
+		default_pool.allowExtraAllocations(true);
+		initialized = true;
+	}
 	return default_pool;
+}
+
+tb::db::PostgresConnectionGuard::PostgresConnectionGuard(
+	PostgresConnectionPool* pool,
+	PostgresConnection* conn
+) :
+	pool(pool),
+	connection(conn)
+{
+}
+
+tb::db::PostgresConnectionGuard::~PostgresConnectionGuard()
+{
+	pool->recycle(connection);
+	pool = nullptr;
+	connection = nullptr;
+}
+
+PGconn* tb::db::PostgresConnectionGuard::operator()()
+{
+	return (*connection)();
 }

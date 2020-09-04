@@ -29,4 +29,8 @@
 #define DB_PASSWORD "tradebot-db-password"
 #endif
 
+#ifndef DEFAULT_DB_CONN_POOL_SIZE
+#define DEFAULT_DB_CONN_POOL_SIZE 10
+#endif
+
 #endif
