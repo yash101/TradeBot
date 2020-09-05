@@ -18,15 +18,15 @@
 #endif
 
 #ifndef DB_NAME
-#define DB_NAME "tradebot"
+#define DB_NAME "TradeBot-Development"
 #endif
 
 #ifndef DB_LOGIN
-#define DB_LOGIN "tradebot"
+#define DB_LOGIN "TradeBot"
 #endif
 
 #ifndef DB_PASSWORD
-#define DB_PASSWORD "tradebot-db-password"
+#define DB_PASSWORD "TradeBotPassword"
 #endif
 
 #ifndef DEFAULT_DB_CONN_POOL_SIZE

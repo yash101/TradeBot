@@ -110,6 +110,8 @@ namespace tb
 			PGconn* operator()();
 
 		};
+
+		void initialize_database(PostgresConnection& connection);
 	}
 }
 

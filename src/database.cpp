@@ -97,9 +97,7 @@ tb::db::PostgresConnectionPool::PostgresConnectionPool(
 	login(login),
 	password(password)
 {
-	std::ostringstream strm;
-	strm << port;
-	this->port = port;
+	this->port = std::to_string(port);
 }
 
 tb::db::PostgresConnectionPool::~PostgresConnectionPool()
@@ -279,4 +277,62 @@ tb::db::PostgresConnectionGuard::~PostgresConnectionGuard()
 PGconn* tb::db::PostgresConnectionGuard::operator()()
 {
 	return (*connection)();
+}
+
+void
+tb::db::initialize_database(
+	tb::db::PostgresConnection& conn
+)
+{
+	tb::db::PostgresConnectionGuard g(
+		&tb::db::PostgresConnectionPool::getDefaultPool(),
+		tb::db::PostgresConnectionPool::getDefaultPool().get()
+	);
+
+	PGresult* result;
+	ExecStatusType status;
+
+	// User table
+	result = PQexec(
+		g(),
+		"CREATE TABLE IF NOT EXISTS user ("
+		"	uid NOT NULL SERIAL PRIMARY KEY,"
+		"	email VARCHAR(320),"
+		"	first_name VARCHAR(256),"
+		"	last_name VARCHAR(256)"
+		");"
+	);
+
+	status = PQresultStatus(result);
+	if (status != PGRES_COMMAND_OK)
+	{
+		printf("Error: %s:%d: %s\n", __FILE__, __LINE__, PQresStatus(status));
+	}
+
+	PQclear(result);
+
+	// TD Ameritrade Authentication table
+	result = PQexec(
+		g(),
+		"CREATE TABLE IF NOT EXISTS tdameritrade_authentication ("
+		"	uid SERIAL NOT NULL PRIMARY KEY,"
+		"	primaryAccountNumber VARCHAR(24) NOT NULL PRIMARY KEY,"
+		"	refreshTokenExpiry TIMESTAMP,"
+		"	accessTokenExpiry TIMESTAMP,"
+		"	refreshToken TEXT,"
+		"	accessToken TEXT"
+		");"
+	);
+
+	status = PQresultStatus(result);
+	if (status != PGRES_COMMAND_OK)
+	{
+		printf("Error: %s:%d: %s\n", __FILE__, __LINE__, PQresStatus(status));
+	}
+
+	result = PQexec(
+		g(),
+		""
+	);
+
 }

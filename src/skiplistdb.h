@@ -49,34 +49,127 @@ namespace tb
 		{
 		private:
 
-			/** \brief used internally to represent blocks of data represented physically in backing memory
-			* 
-			* 
-			*/
-			class SkipNode
+			class Metadata
 			{
+				
+			private:
+
+				uint64_t data[3];
+
 			public:
 
-				size_t ptr_this;
+				Metadata() :
+					data({0, 0, 0})
+				{
+				}
 
-				size_t ptr_down;
-				size_t ptr_next;
-				int64_t key;
+				uint64_t& count_elements()
+				{
+					return data[0];
+				}
 
-				void* data;
-				uint64_t data_length;
+				uint64_t& first_block_pointer()
+				{
+					return data[1];
+				}
 
-				// used for file writing
-				char* pbuf;
+				uint64_t& first_empty_pointer()
+				{
+					return data[2];
+				}
 
-				void write(tb::db::SkipListDB* db);
-				void read(tb::db::SkipListDB* db);
-				void allocate(tb::db::SkipListDB* db);
+				char* raw()
+				{
+					return reinterpret_cast<char*>(data);
+				}
 
-				SkipNode();
-				~SkipNode();
+				size_t raw_size()
+				{
+					return sizeof(data);
+				}
 
 			};
+
+
+			class PointerBlock
+			{
+
+			private:
+
+				uint64_t data[3];
+
+			public:
+
+				PointerBlock() :
+					data({ 0, 0, 0 })
+				{
+				}
+
+				uint64_t next()
+				{
+					return data[0];
+				}
+
+				uint64_t down()
+				{
+					return data[1];
+				}
+
+				uint64_t key()
+				{
+					return data[2];
+				}
+
+				char* raw()
+				{
+					return reinterpret_cast<char*>(data);
+				}
+
+				size_t raw_size()
+				{
+					return sizeof(data);
+				}
+
+			};
+
+			class EmptyBlock
+			{
+
+			private:
+
+				uint64_t data[2];
+
+			public:
+
+				EmptyBlock();
+
+				uint64_t& next();
+
+				uint64_t& length();
+
+				char* raw();
+
+				size_t raw_size();
+
+			};
+
+			class DataBlock
+			{
+
+			private:
+
+				uint8_t size;
+				char* data;
+
+			public:
+
+				void set_data(void* ptr, size_t bytes);
+
+				char* raw();
+				size_t raw_size();
+
+			};
+
 
 			FILE* file;
 			size_t current_location = 0;

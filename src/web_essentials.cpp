@@ -103,10 +103,12 @@ tb::tools::urldecode(
     return strm.str();
 }
 
-static bool escape_lut[256];
-static const char* escape_strings[256];
-static bool escape_lut_built = false;
+static bool escape_lut[256];                /**< determines whether a character needs to be url encoded (transformed into '%hex') */
+static const char* escape_strings[256];     /**< strings that should replace characters that must be replaced */
+static bool escape_lut_built = false;       /**< a flag to determine whether escape_lut and escape_strings have been initialized */
 
+/** \brief builds the LUTs for url encoding / url decoding
+*/
 static void build_urlencode_lut()
 {
     // only run once; these 3 lines should prob be inlined
