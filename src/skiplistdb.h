@@ -58,35 +58,13 @@ namespace tb
 
 			public:
 
-				Metadata() :
-					data({0, 0, 0})
-				{
-				}
+				Metadata();
 
-				uint64_t& count_elements()
-				{
-					return data[0];
-				}
-
-				uint64_t& first_block_pointer()
-				{
-					return data[1];
-				}
-
-				uint64_t& first_empty_pointer()
-				{
-					return data[2];
-				}
-
-				char* raw()
-				{
-					return reinterpret_cast<char*>(data);
-				}
-
-				size_t raw_size()
-				{
-					return sizeof(data);
-				}
+				uint64_t& count_elements();
+				uint64_t& first_block_pointer();
+				uint64_t& first_empty_pointer();
+				char* raw();
+				size_t raw_size();
 
 			};
 
@@ -100,35 +78,13 @@ namespace tb
 
 			public:
 
-				PointerBlock() :
-					data({ 0, 0, 0 })
-				{
-				}
+				PointerBlock();
 
-				uint64_t next()
-				{
-					return data[0];
-				}
-
-				uint64_t down()
-				{
-					return data[1];
-				}
-
-				uint64_t key()
-				{
-					return data[2];
-				}
-
-				char* raw()
-				{
-					return reinterpret_cast<char*>(data);
-				}
-
-				size_t raw_size()
-				{
-					return sizeof(data);
-				}
+				uint64_t& next();
+				uint64_t& down();
+				uint64_t& key();
+				char* raw();
+				size_t raw_size();
 
 			};
 
@@ -144,12 +100,7 @@ namespace tb
 				EmptyBlock();
 
 				uint64_t& next();
-
 				uint64_t& length();
-
-				char* raw();
-
-				size_t raw_size();
 
 			};
 
@@ -158,13 +109,15 @@ namespace tb
 
 			private:
 
-				uint8_t size;
+				uint64_t size;
 				char* data;
 
 			public:
 
-				void set_data(void* ptr, size_t bytes);
+				DataBlock();
+				virtual ~DataBlock();
 
+				void set_data(void* ptr, size_t bytes);
 				char* raw();
 				size_t raw_size();
 
@@ -174,8 +127,6 @@ namespace tb
 			FILE* file;
 			size_t current_location = 0;
 			size_t file_length = 0;
-
-			SkipNode root;
 
 		protected:
 

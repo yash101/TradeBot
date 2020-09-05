@@ -93,138 +93,118 @@ tb::db::SkipListDB::retrieve(
 {
 }
 
-tb::db::SkipListDB::SkipNode::SkipNode() :
-	ptr_this(0),
-	ptr_down(0),
-	ptr_next(0),
-	key(0),
-	data(nullptr),
-	data_length(0),
-	pbuf(nullptr)
+tb::db::SkipListDB::Metadata::Metadata() :
+	data{ 0 }
 {
 }
 
-tb::db::SkipListDB::SkipNode::~SkipNode()
+uint64_t&
+tb::db::SkipListDB::Metadata::count_elements()
 {
-	if (data != nullptr)
-		delete reinterpret_cast<char*>(data);
+	return data[0];
+}
 
-	if (pbuf != nullptr)
-		delete pbuf;
+uint64_t&
+tb::db::SkipListDB::Metadata::first_block_pointer()
+{
+	return data[1];
+}
+
+uint64_t&
+tb::db::SkipListDB::Metadata::first_empty_pointer()
+{
+	return data[2];
+}
+
+char*
+tb::db::SkipListDB::Metadata::raw()
+{
+	return reinterpret_cast<char*>(data);
+}
+
+size_t
+tb::db::SkipListDB::Metadata::raw_size()
+{
+	return sizeof(data);
+}
+
+tb::db::SkipListDB::PointerBlock::PointerBlock() :
+	data{ 0 }
+{
+}
+
+uint64_t&
+tb::db::SkipListDB::PointerBlock::next()
+{
+	return data[0];
+}
+
+uint64_t&
+tb::db::SkipListDB::PointerBlock::down()
+{
+	return data[1];
+}
+
+uint64_t&
+tb::db::SkipListDB::PointerBlock::key()
+{
+	return data[2];
+}
+
+char*
+tb::db::SkipListDB::PointerBlock::raw()
+{
+	return reinterpret_cast<char*>(data);
+}
+
+size_t
+tb::db::SkipListDB::PointerBlock::raw_size()
+{
+	return sizeof(data);
+}
+
+tb::db::SkipListDB::EmptyBlock::EmptyBlock() :
+	data{ 0 }
+{
+}
+
+uint64_t&
+tb::db::SkipListDB::EmptyBlock::next()
+{
+	return data[0];
+}
+
+uint64_t&
+tb::db::SkipListDB::EmptyBlock::length()
+{
+	return data[1];
+}
+
+tb::db::SkipListDB::DataBlock::DataBlock() :
+	size(0),
+	data(nullptr)
+{
+}
+
+tb::db::SkipListDB::DataBlock::~DataBlock()
+{
 }
 
 void
-tb::db::SkipListDB::SkipNode::write(
-	tb::db::SkipListDB* db
-)
-{
-	if (ptr_this == 0 || db->file == nullptr)
-		throw std::out_of_range("The database file has not been allocated or the SkipNode is pointing to NULL");
-
-	// move to the location of this object
-	db->seek(ptr_this);
-
-	// if data is null, this is a pointer block
-	size_t blocksize =
-		sizeof(ptr_down) +
-		sizeof(ptr_next) +
-		sizeof(key) +
-		sizeof(uint64_t);		// total size of the block
-
-	if (data != nullptr)
-		blocksize += data_length;
-
-	char* buffer = new char[blocksize];
-	size_t offset = 0;
-	memcpy(buffer + offset, &ptr_down, sizeof(ptr_down));
-	offset += sizeof(ptr_down);
-	memcpy(buffer + offset, &ptr_next, sizeof(ptr_next));
-	offset += sizeof(ptr_next);
-	memcpy(buffer + offset, &key, sizeof(key));
-	offset += sizeof(key);
-	memcpy(buffer + offset, &blocksize, sizeof(blocksize));
-	offset += sizeof(blocksize);
-
-	if (data != nullptr)
-		memcpy(buffer + offset, data, data_length);
-
-	auto ret = fwrite(
-		reinterpret_cast<void*>(buffer),
-		blocksize,
-		1,
-		db->file
-	);
-
-	// write failed
-	if (ret == 0)
-	{
-		delete[] buffer;
-		throw std::bad_alloc();
-	}
-
-	delete[] buffer;
-}
-
-void
-tb::db::SkipListDB::SkipNode::read(
-	tb::db::SkipListDB* db
-)
-{
-	if (ptr_this == 0 || db->file == nullptr)
-		throw std::out_of_range("The database file has not been allocated or the SkipNode is pointing to NULL");
-
-	// move to the correct location
-	db->seek(ptr_this);
-
-	size_t blocksize;
-	size_t ret;
-
-	ret = fread(reinterpret_cast<void*>(&ptr_down), sizeof(ptr_down), 1, db->file);
-	if (ret == 0)
-		throw std::bad_alloc();
-
-	ret = fread(reinterpret_cast<void*>(&ptr_next), sizeof(ptr_down), 1, db->file);
-	if (ret == 0)
-		throw std::bad_alloc();
-
-	ret = fread(reinterpret_cast<void*>(&key), sizeof(ptr_down), 1, db->file);
-	if (ret == 0)
-		throw std::bad_alloc();
-
-	ret = fread(reinterpret_cast<void*>(&blocksize), sizeof(ptr_down), 1, db->file);
-	if (ret == 0)
-		throw std::bad_alloc();
-
-	size_t remaining_bytes = blocksize - (
-		sizeof(ptr_down) +
-		sizeof(ptr_next) +
-		sizeof(key) +
-		sizeof(blocksize)
-	);
-
-	if (pbuf != nullptr && data_length != remaining_bytes)
-	{
-		delete[] pbuf;
-		data_length = 0;
-	}
-
-	if (data_length != remaining_bytes)
-	{
-		delete[] pbuf;
-		pbuf = new char[remaining_bytes];
-		data_length = remaining_bytes;
-	}
-
-	ret = fread(reinterpret_cast<void*>(pbuf), remaining_bytes, 1, db->file);
-	if (ret == 0)
-		throw std::bad_alloc();
-
-
-}
-
-void
-tb::db::SkipListDB::SkipNode::allocate(
-	tb::db::SkipListDB* db
+tb::db::SkipListDB::DataBlock::set_data(
+	void* ptr,
+	size_t bytes
 )
 {
 }
+
+char*
+tb::db::SkipListDB::DataBlock::raw()
+{
+}
+
+size_t
+tb::db::SkipListDB::DataBlock::raw_size()
+{
+}
+
