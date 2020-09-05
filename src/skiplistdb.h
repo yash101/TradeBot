@@ -49,12 +49,14 @@ namespace tb
 		{
 		private:
 
+			/** \brief Metadata block for the SkipListDB
+			*/
 			class Metadata
 			{
 				
 			private:
 
-				uint64_t data[3];
+				uint64_t data[3];	//< data[0] = count of elements; data[1] = pointer to the first useful block; data[2] = pointer to the first empty block; note: all of these values are initialized to 0 as NULL
 
 			public:
 
@@ -69,12 +71,16 @@ namespace tb
 			};
 
 
+			/** \brief Pointer block for the SkipListDB
+			* 
+			* Pointer blocks contain a next pointer, down pointer, and a key
+			*/
 			class PointerBlock
 			{
 
 			private:
 
-				uint64_t data[3];
+				uint64_t data[3];	//< data[0]: next pointer (points right); data[1]: down pointer (points down); data[2]: key
 
 			public:
 
@@ -88,12 +94,14 @@ namespace tb
 
 			};
 
+			/** \brief Garbage block - represents a void in a database file
+			*/
 			class EmptyBlock
 			{
 
 			private:
 
-				uint64_t data[2];
+				uint64_t data[2];	//< data[0]: pointer to the next empty block; data[1]: length of this garbage block 16 bytes for block header
 
 			public:
 
@@ -104,13 +112,17 @@ namespace tb
 
 			};
 
+			/** \brief Holds a piece of data and its size
+			* 
+			* /todo: revise this class and build it
+			*/
 			class DataBlock
 			{
 
 			private:
 
-				uint64_t size;
-				char* data;
+				uint64_t data[2];	//< data[0]: size of data block; data[1]: key of data block
+				char* ptr;			//< pointer to array that holds data
 
 			public:
 
@@ -124,9 +136,7 @@ namespace tb
 			};
 
 
-			FILE* file;
-			size_t current_location = 0;
-			size_t file_length = 0;
+			FILE* file;		//< file pointer used by CSTDIO
 
 		protected:
 
@@ -134,6 +144,7 @@ namespace tb
 			void seek_end();
 			void seek_beg();
 			size_t get_position();
+			size_t get_size(); #error "TODO: Not implemented yet"
 
 		public:
 

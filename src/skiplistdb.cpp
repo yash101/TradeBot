@@ -181,8 +181,8 @@ tb::db::SkipListDB::EmptyBlock::length()
 }
 
 tb::db::SkipListDB::DataBlock::DataBlock() :
-	size(0),
-	data(nullptr)
+	data{ 0 },
+	raw(nullptr)
 {
 }
 
