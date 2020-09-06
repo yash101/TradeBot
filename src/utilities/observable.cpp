@@ -1,6 +1,7 @@
 #include "observable.h"
 
 #include <iostream>
+#include <exception>
 
 bool
 tb::SubjectServer::notify(
@@ -45,6 +46,9 @@ tb::SubjectServer::subscribe_subject(
 	Observer* observer
 )
 {
+	if (observer == nullptr)
+		throw std::exception();
+
 	// writes should be exclusive
 	std::unique_lock lck(listeners_lock);
 
@@ -53,6 +57,7 @@ tb::SubjectServer::subscribe_subject(
 		return false;
 
 	listeners[subject].insert(observer);
+	subscriptions[observer].insert(subject);
 
 	return true;
 }
@@ -72,6 +77,13 @@ tb::SubjectServer::unsubscribe_subject(
 		return false;
 
 	listeners[subject].erase(observer);
+	subscriptions[observer].erase(subject);
+
+	if (listeners[subject].empty())			// prevent memory leaks by trimming unused containers
+		listeners.erase(subject);
+
+	if (subscriptions[observer].empty())	// prevent memory leaks by trimming unused observers
+		subscriptions.erase(observer);
 
 	return true;
 }
@@ -87,6 +99,34 @@ tb::SubjectServer::is_subscribed(
 	std::shared_lock lck(listeners_lock);
 
 	return listeners[subject].find(observer) != listeners[subject].end();
+}
+
+
+bool
+tb::SubjectServer::unsubscribe_observer(
+	Observer* observer
+)
+{
+	// null observer can't be subscribed
+	if (observer == nullptr)
+		return true;
+
+	std::unique_lock lock(listeners_lock);
+
+	// no subscriptions?
+	if (subscriptions.find(observer) == subscriptions.end())
+		return true;
+
+	// unsubscribe from everything
+	for (auto it = subscriptions[observer].begin(); it != subscriptions[observer].end(); ++it)
+	{
+		listeners[*it].erase(observer);
+
+		if (listeners[*it].empty())	// gc
+			listeners.erase(*it);
+	}
+
+	subscriptions.erase(observer);	// gc
 }
 
 
