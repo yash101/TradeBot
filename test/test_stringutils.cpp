@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "main.h"
-#include "../src/stringutils.h"
+#include "../src/utilities/stringutils.h"
 
 /* TEST DISABLED because the base functionality has not been implemented
 TEST(Stringutils_SplitString, MainTest)

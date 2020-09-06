@@ -5,12 +5,12 @@
 #include <memory.h>
 #include <stdexcept>
 
+
 tb::db::SkipListDB::SkipListDB() :
-	file(nullptr),
-	current_location(0),
-	file_length(0)
+	file(nullptr)
 {
 }
+
 
 tb::db::SkipListDB::~SkipListDB()
 {
@@ -18,8 +18,6 @@ tb::db::SkipListDB::~SkipListDB()
 	{
 		fclose(file);
 		file = nullptr;
-		current_location = 0;
-		file_length = 0;
 	}
 }
 
@@ -211,8 +209,7 @@ tb::db::SkipListDB::EmptyBlock::length()
 
 
 tb::db::SkipListDB::DataBlock::DataBlock() :
-	data{ 0 },
-	raw(nullptr)
+	data{ 0 }
 {
 }
 
