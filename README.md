@@ -1,10 +1,12 @@
 # TradeBot
 
 ## Requirements:
-- Boost
 - QuantLib
-- SOCI
+	- Boost
 - JSON - nlohmann
 - cpp-netlib
-- OpenSSL
-- zlib
+	- OpenSSL
+	- zlib
+- libpq
+	- OpenSSL
+	- zlib
