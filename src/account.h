@@ -5,6 +5,8 @@
 
 namespace tb
 {
+    /** \brief represents a brokerage account
+    */
     class Account
     {
     private:

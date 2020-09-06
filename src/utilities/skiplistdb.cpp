@@ -34,11 +34,13 @@ tb::db::SkipListDB::seek(
 		throw std::bad_alloc();
 }
 
+
 void
 tb::db::SkipListDB::seek_beg()
 {
 	fseek(file, 0, SEEK_SET);
 }
+
 
 void
 tb::db::SkipListDB::seek_end()
@@ -46,11 +48,13 @@ tb::db::SkipListDB::seek_end()
 	fseek(file, 0, SEEK_END);
 }
 
+
 size_t
 tb::db::SkipListDB::get_position()
 {
 	return ftell(file);
 }
+
 
 void
 tb::db::SkipListDB::open_db(
@@ -70,11 +74,20 @@ tb::db::SkipListDB::open_db(
 	}
 }
 
-// for sorting
-static bool compare_entries(tb::db::SkipListEntry a, tb::db::SkipListEntry b)
+
+/** \brief compares keys to determine which is smaller
+* \param a is one of the compared entries
+* \param b is another compared entry
+* 
+* \return true if a.key < b.key
+* 
+* Useful for std::sort()
+*/
+static bool compare_entries(tb::db::SkipListEntry& a, tb::db::SkipListEntry& b)
 {
 	return a.key < b.key;
 }
+
 
 void
 tb::db::SkipListDB::insert(
@@ -85,18 +98,22 @@ tb::db::SkipListDB::insert(
 	std::sort(entries.begin(), entries.end(), compare_entries);
 }
 
+
 std::vector<tb::db::SkipListEntry>
 tb::db::SkipListDB::retrieve(
 	long lowerbound,
 	long upperbound
 )
 {
+	return std::vector<tb::db::SkipListEntry>();
 }
+
 
 tb::db::SkipListDB::Metadata::Metadata() :
 	data{ 0 }
 {
 }
+
 
 uint64_t&
 tb::db::SkipListDB::Metadata::count_elements()
@@ -110,11 +127,13 @@ tb::db::SkipListDB::Metadata::first_block_pointer()
 	return data[1];
 }
 
+
 uint64_t&
 tb::db::SkipListDB::Metadata::first_empty_pointer()
 {
 	return data[2];
 }
+
 
 char*
 tb::db::SkipListDB::Metadata::raw()
@@ -122,16 +141,19 @@ tb::db::SkipListDB::Metadata::raw()
 	return reinterpret_cast<char*>(data);
 }
 
+
 size_t
 tb::db::SkipListDB::Metadata::raw_size()
 {
 	return sizeof(data);
 }
 
+
 tb::db::SkipListDB::PointerBlock::PointerBlock() :
 	data{ 0 }
 {
 }
+
 
 uint64_t&
 tb::db::SkipListDB::PointerBlock::next()
@@ -139,11 +161,13 @@ tb::db::SkipListDB::PointerBlock::next()
 	return data[0];
 }
 
+
 uint64_t&
 tb::db::SkipListDB::PointerBlock::down()
 {
 	return data[1];
 }
+
 
 uint64_t&
 tb::db::SkipListDB::PointerBlock::key()
@@ -151,11 +175,13 @@ tb::db::SkipListDB::PointerBlock::key()
 	return data[2];
 }
 
+
 char*
 tb::db::SkipListDB::PointerBlock::raw()
 {
 	return reinterpret_cast<char*>(data);
 }
+
 
 size_t
 tb::db::SkipListDB::PointerBlock::raw_size()
@@ -163,10 +189,12 @@ tb::db::SkipListDB::PointerBlock::raw_size()
 	return sizeof(data);
 }
 
+
 tb::db::SkipListDB::EmptyBlock::EmptyBlock() :
 	data{ 0 }
 {
 }
+
 
 uint64_t&
 tb::db::SkipListDB::EmptyBlock::next()
@@ -174,11 +202,13 @@ tb::db::SkipListDB::EmptyBlock::next()
 	return data[0];
 }
 
+
 uint64_t&
 tb::db::SkipListDB::EmptyBlock::length()
 {
 	return data[1];
 }
+
 
 tb::db::SkipListDB::DataBlock::DataBlock() :
 	data{ 0 },
@@ -186,9 +216,11 @@ tb::db::SkipListDB::DataBlock::DataBlock() :
 {
 }
 
+
 tb::db::SkipListDB::DataBlock::~DataBlock()
 {
 }
+
 
 void
 tb::db::SkipListDB::DataBlock::set_data(
@@ -198,10 +230,12 @@ tb::db::SkipListDB::DataBlock::set_data(
 {
 }
 
+
 char*
 tb::db::SkipListDB::DataBlock::raw()
 {
 }
+
 
 size_t
 tb::db::SkipListDB::DataBlock::raw_size()

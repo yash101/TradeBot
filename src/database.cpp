@@ -4,6 +4,7 @@
 #include <exception>
 #include <iostream>
 
+
 tb::db::PostgresConnection::PostgresConnection(
 	std::string host = "",
 	short port = 0,
@@ -41,6 +42,7 @@ tb::db::PostgresConnection::PostgresConnection(
 		throw std::bad_alloc();
 }
 
+
 tb::db::PostgresConnection::~PostgresConnection()
 {
 	if (connection != nullptr && connection != NULL)
@@ -51,11 +53,13 @@ tb::db::PostgresConnection::~PostgresConnection()
 	}
 }
 
+
 PGconn*
 tb::db::PostgresConnection::operator()()
 {
 	return connection;
 }
+
 
 void
 tb::db::PostgresConnection::reset()
@@ -74,12 +78,14 @@ tb::db::PostgresConnection::reset()
 		);
 }
 
+
 tb::db::PostgresConnectionPool::PostgresConnectionPool() :
 	pool_size(0),
 	allowExtraAllocation(true),
 	allocated_connections(0)
 {
 }
+
 
 tb::db::PostgresConnectionPool::PostgresConnectionPool(
 	std::string host,
@@ -100,6 +106,7 @@ tb::db::PostgresConnectionPool::PostgresConnectionPool(
 	this->port = std::to_string(port);
 }
 
+
 tb::db::PostgresConnectionPool::~PostgresConnectionPool()
 {
 	for (auto it = connections.begin(); it != connections.end(); ++it)
@@ -108,6 +115,7 @@ tb::db::PostgresConnectionPool::~PostgresConnectionPool()
 		delete *it;
 	}
 }
+
 
 void
 tb::db::PostgresConnectionPool::setPoolSize(
@@ -118,19 +126,23 @@ tb::db::PostgresConnectionPool::setPoolSize(
 	resize();
 }
 
+
 void
 tb::db::PostgresConnectionPool::allowExtraAllocations(
 	bool yes
 )
 {
 	allowExtraAllocation = yes;
+	resize();
 }
+
 
 unsigned int
 tb::db::PostgresConnectionPool::getPoolSize()
 {
 	return pool_size;
 }
+
 
 void
 tb::db::PostgresConnectionPool::resize()
@@ -156,6 +168,7 @@ tb::db::PostgresConnectionPool::resize()
 	}
 	queue_mtx.unlock();
 }
+
 
 tb::db::PostgresConnection*
 tb::db::PostgresConnectionPool::get()
@@ -202,6 +215,7 @@ tb::db::PostgresConnectionPool::get()
 	return conn;
 }
 
+
 void
 tb::db::PostgresConnectionPool::recycle(
 	tb::db::PostgresConnection* conn
@@ -228,12 +242,18 @@ tb::db::PostgresConnectionPool::recycle(
 	queue_mtx.unlock();
 }
 
+
 unsigned int
 tb::db::PostgresConnectionPool::currentlyAllocated()
 {
 	return allocated_connections;
 }
 
+
+/** \brief object for the default database pool
+* 
+* Internal to the database compiled object. Accessible via tb::db::PostgressConnectionPool::getDefaultPool()
+*/
 static tb::db::PostgresConnectionPool default_pool(
 	DB_HOST,
 	DB_PORT,
@@ -243,9 +263,7 @@ static tb::db::PostgresConnectionPool default_pool(
 	DB_LOGIN,
 	DB_PASSWORD
 );
-
 static bool initialized = false;
-
 tb::db::PostgresConnectionPool&
 tb::db::PostgresConnectionPool::getDefaultPool()
 {
@@ -258,6 +276,7 @@ tb::db::PostgresConnectionPool::getDefaultPool()
 	return default_pool;
 }
 
+
 tb::db::PostgresConnectionGuard::PostgresConnectionGuard(
 	PostgresConnectionPool* pool,
 	PostgresConnection* conn
@@ -267,6 +286,16 @@ tb::db::PostgresConnectionGuard::PostgresConnectionGuard(
 {
 }
 
+
+tb::db::PostgresConnectionGuard::PostgresConnectionGuard() :
+	pool(nullptr),
+	connection(nullptr)
+{
+	pool = &tb::db::PostgresConnectionPool::getDefaultPool();
+	connection = pool->get();
+}
+
+
 tb::db::PostgresConnectionGuard::~PostgresConnectionGuard()
 {
 	pool->recycle(connection);
@@ -274,10 +303,19 @@ tb::db::PostgresConnectionGuard::~PostgresConnectionGuard()
 	connection = nullptr;
 }
 
+
 PGconn* tb::db::PostgresConnectionGuard::operator()()
 {
 	return (*connection)();
 }
+
+
+tb::db::PostgresConnection*
+tb::db::PostgresConnectionGuard::get_connection()
+{
+	return connection;
+}
+
 
 void
 tb::db::initialize_database(
