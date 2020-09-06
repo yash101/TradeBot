@@ -2,8 +2,15 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(TradeBot CXX)
 
+include(CheckLanguage)
+check_language(CUDA)
+if (DEFINED CMAKE_CUDA_COMPILER_ID)
+    message("CUDA was found and has been enabled")
+    message(${CMAKE_CUDA_COMPILER_ID})
+    enable_language(CUDA)
+endif()
+
 find_package(PkgConfig REQUIRED)
-# include(cmake/FindSOCI.cmake REQUIRED)
 
 include(GNUInstallDirs)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
