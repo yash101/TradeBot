@@ -26,7 +26,7 @@ namespace tb
 
 	public:
 
-		/** \brief notifies all observers who are subscribed to \param subject with \param object
+		/** \brief notifies all observers who are subscribed to subject with object
 		* \param subject is the subject the recipients are subscribed to
 		* \param object is an arbitrary pointer that is passed onto the recipients
 		* \return true if any observer received the notification; false if no observer was subscribed to the subject of the notification
@@ -38,7 +38,7 @@ namespace tb
 		);
 
 
-		/** \brief subscribe observer \param observer to subject \param subject
+		/** \brief subscribe observer observer to subject subject
 		* \param subject is the subject observer will be subscribed to
 		* \param observer is a pointer to the observer who is requesting subscription
 		* \return true if successfully subscribed, false if observer was already subscribed to the subject
@@ -52,10 +52,10 @@ namespace tb
 		);
 
 
-		/** \brief unsubscribes observer \param observer from subject \param subject
+		/** \brief unsubscribes observer observer from subject subject
 		* \param subject is the subject we would like to unsubscribe observer from
-		* \param observer is the observer we are unsubscribing from subject \param subject
-		* \return true if successfully unsubscribed; false if \param observable was not subscribed to \param subject
+		* \param observer is the observer we are unsubscribing from subject subject
+		* \return true if successfully unsubscribed; false if observable was not subscribed to subject
 		*/
 		bool
 		unsubscribe_subject(
@@ -63,10 +63,10 @@ namespace tb
 			Observer* observer
 		);
 
-		/** \brief returns true if observer \param observer is subscribed to \param subject
-		* \param subject is the subject we are checking to see if \param observer is subscribed to
-		* \param observer is the observer we are checking for a subscription to \param subject
-		* \return true if observer is subscribed to subject \param subject; false if observer is not subsribed to \param observer
+		/** \brief returns true if observer observer is subscribed to subject
+		* \param subject is the subject we are checking to see if observer is subscribed to
+		* \param observer is the observer we are checking for a subscription to subject
+		* \return true if observer is subscribed to subject subject; false if observer is not subsribed to observer
 		*/
 		bool
 		is_subscribed(
