@@ -49,17 +49,22 @@ tb::TradeBot::startup_db()
     setif(login, "postgres.login", DB_LOGIN);
     setif(password, "postgres.password", DB_PASSWORD);
 
+
     tb::db::pool_instance().configure(
         host,
         port,
         options,
         "",
         dbname,
-        options,
+        login,
         password
     );
 
 #undef setif
+
+    std::cout << "Initializing database..." << std::endl;
+    // initialize the database
+    tb::db::initialize_database(*tb::db::pool_instance().get());
 }
 
 

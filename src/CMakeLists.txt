@@ -22,7 +22,6 @@ pkg_check_modules(Json REQUIRED nlohmann_json)
 # find packages
 find_package(httplib REQUIRED)
 find_package(Threads REQUIRED)
-find_package(Poco REQUIRED COMPONENTS Foundation Net)
 find_package(PostgreSQL REQUIRED)
 
 # add the binary output files - the binary and the library
@@ -63,3 +62,6 @@ target_include_directories(${BINARY}_lib PUBLIC ${PostgreSQL_INCLUDE_DIRS})
 
 # Build the TD Ameritrade authenticator separately
 add_subdirectory(tdapi)
+add_subdirectory(fred)
+add_subdirectory(quant)
+add_subdirectory(utilities)

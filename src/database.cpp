@@ -37,7 +37,33 @@ tb::db::PostgresConnection::PostgresConnection(
 		this->password.c_str()
 	);
 
-	// connection failed
+
+	auto connstatus = PQstatus(connection);
+	if (connstatus != CONNECTION_OK)
+	{
+		switch (connstatus)
+		{
+		case CONNECTION_STARTED:
+			std::cout << "Connection Started" << std::endl;
+		case CONNECTION_MADE:
+			std::cout << "Connection Made" << std::endl;
+		case CONNECTION_AWAITING_RESPONSE:
+			std::cout << "Connection Awaiting Response" << std::endl;
+		case CONNECTION_AUTH_OK:
+			std::cout << "Connection Auth Ok" << std::endl;
+		case CONNECTION_SSL_STARTUP:
+			std::cout << "Connection SSL Startup" << std::endl;
+		case CONNECTION_SETENV:
+			std::cout << "Connection Setenv" << std::endl;
+		default:
+			std::cout << "Connecting..." << std::endl;
+		}
+
+		printf("\t%s\n", PQerrorMessage(connection));
+	}
+
+
+	// failed to allocate connection object
 	if (connection == NULL)
 		throw std::bad_alloc();
 }
@@ -109,6 +135,7 @@ tb::db::PostgresConnectionPool::PostgresConnectionPool(
 
 tb::db::PostgresConnectionPool::~PostgresConnectionPool()
 {
+	// gc; delete each connection
 	for (auto it = connections.begin(); it != connections.end(); ++it)
 	{
 		// de-allocate the connection object
@@ -351,15 +378,20 @@ tb::db::initialize_database(
 	PGresult* result;
 	ExecStatusType status;
 
-	// User table
-	result = PQexec(
-		g(),
-		"CREATE TABLE IF NOT EXISTS user ("
-		"	uid NOT NULL SERIAL PRIMARY KEY,"
+	const char* stmt = "CREATE TABLE IF NOT EXISTS \"user\" ("
+		"	uid SERIAL NOT NULL PRIMARY KEY,"
 		"	email VARCHAR(320),"
 		"	first_name VARCHAR(256),"
 		"	last_name VARCHAR(256)"
-		");"
+		");";
+
+	printf("%p\n", g());
+
+
+	// User table
+	result = PQexec(
+		g(),
+		stmt
 	);
 
 	status = PQresultStatus(result);
@@ -373,7 +405,7 @@ tb::db::initialize_database(
 	// TD Ameritrade Authentication table
 	result = PQexec(
 		g(),
-		"CREATE TABLE IF NOT EXISTS tdameritrade_authentication ("
+		"CREATE TABLE IF NOT EXISTS \"tdameritrade_authentication\" ("
 		"	uid SERIAL NOT NULL PRIMARY KEY,"
 		"	primaryAccountNumber VARCHAR(24) NOT NULL PRIMARY KEY,"
 		"	refreshTokenExpiry TIMESTAMP,"
@@ -389,9 +421,9 @@ tb::db::initialize_database(
 		printf("Error: %s:%d: %s\n", __FILE__, __LINE__, PQresStatus(status));
 	}
 
-	result = PQexec(
-		g(),
-		""
-	);
+//	result = PQexec(
+//		g(),
+//		""
+//	);
 
 }
