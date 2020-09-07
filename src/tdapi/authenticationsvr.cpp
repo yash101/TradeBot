@@ -1,8 +1,10 @@
 #include "authenticationsvr.h"
 #include "../utilities/web_essentials.h"
+#include "../database.h"
 
 #include <nlohmann/json.hpp>
 #include <iostream>
+
 
 using json = nlohmann::json;
 
@@ -12,7 +14,7 @@ using json = nlohmann::json;
 
 int main(int argc, char** argv)
 {
-    tb::tdameritrade::TdOauthAgent agent;
+    tb::tdameritrade::OneTimeOauthAgent agent;
 
     if (argc < 5)
     {
@@ -50,12 +52,14 @@ int main(int argc, char** argv)
         << "Refresh Token: " << std::get<2>(ret) << std::endl
         << "Access Token: " << std::get<3>(ret) << std::endl;
 
+    tb::db::initialize_database(*tb::db::PostgresConnectionGuard().get_connection());
+
     return 0;
 }
 
 #endif
 
-tb::tdameritrade::TdOauthAgent::TdOauthAgent()
+tb::tdameritrade::OneTimeOauthAgent::OneTimeOauthAgent()
 {
     web_server.Get("/", [&](const httplib::Request& req, httplib::Response& res) {
         std::unordered_map<std::string, std::string> params;
@@ -91,7 +95,7 @@ tb::tdameritrade::TdOauthAgent::TdOauthAgent()
     });
 }
 
-tb::tdameritrade::TdOauthAgent::~TdOauthAgent()
+tb::tdameritrade::OneTimeOauthAgent::~OneTimeOauthAgent()
 {
 }
 
@@ -101,7 +105,7 @@ std::tuple<
     std::string,    // refresh_token
     std::string     // access_token
 >
-tb::tdameritrade::TdOauthAgent::authenticateOAuth(
+tb::tdameritrade::OneTimeOauthAgent::authenticateOAuth(
     std::string listen_ip,
     short listen_port,
     std::string redirect_uri,
@@ -147,3 +151,5 @@ tb::tdameritrade::TdOauthAgent::authenticateOAuth(
         parsed["access_token"]
     );
 }
+
+

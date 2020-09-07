@@ -9,7 +9,7 @@ namespace tb
 {
     namespace tdameritrade
     {
-        class TdOauthAgent
+        class OneTimeOauthAgent
         {
         private:
 
@@ -18,8 +18,8 @@ namespace tb
             short listen_port;
 
         public:
-            TdOauthAgent();
-            virtual ~TdOauthAgent();
+            OneTimeOauthAgent();
+            virtual ~OneTimeOauthAgent();
 
             std::tuple<
                 bool,           // success
@@ -33,6 +33,17 @@ namespace tb
                 std::string redirect_uri,
                 std::string consumer_key
             );
+        };
+
+        class ContinuousOauthAgent
+        {
+        private:
+
+            httplib::Server server;
+            std::string listen_ip, redirect_uri, consumer_key;
+
+        public:
+
         };
     }
 }
