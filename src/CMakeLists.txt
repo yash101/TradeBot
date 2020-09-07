@@ -2,8 +2,18 @@
 set(BINARY ${CMAKE_PROJECT_NAME})
 
 # find the files to compile
+if (DEFINED CMAKE_CUDA_COMPILER_ID)
+file(GLOB_RECURSE SOURCES LIST_DIRECTORIES false *.cpp *.h *.cu)
+else()
 file(GLOB_RECURSE SOURCES LIST_DIRECTORIES false *.cpp *.h)
+endif()
 set(SOURCES ${SOURCES})
+
+# enable CUDA
+if (DEFINED CMAKE_CUDA_COMPILER_ID)
+	set_target_properties(${BINARY} PROPERTIES CUDA_SEPARABLE_COMPILATION on)
+	set_target_properties(${BINARY}_lib PROPERTIES CUDA_SEPARABLE_COMPILATION on)
+endif()
 
 # find libraries
 pkg_check_modules(QuantLib REQUIRED quantlib)
