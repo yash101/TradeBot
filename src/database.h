@@ -91,7 +91,7 @@ namespace tb
 			std::string password;						//< password to log into the database
 
 			std::list<PostgresConnection*> connections;	//< a list of pointers to available connection objects
-			std::mutex queue_mtx;						//< the mutex used to synchronize .connections and remove race conditions
+			mutable std::mutex queue_mtx;				//< the mutex used to synchronize .connections and remove race conditions
 
 			unsigned int pool_size;						//< the number of connections we want to keep alive at all times
 			unsigned int allocated_connections;			//< the number of connections alive right now
@@ -128,6 +128,7 @@ namespace tb
 				std::string password
 			);
 
+
 			virtual ~PostgresConnectionPool();
 
 			
@@ -136,23 +137,31 @@ namespace tb
 			* 
 			* Note: if allowExtraAllocation is true, we may have more open connections than the pool size
 			*/
-			void setPoolSize(unsigned int size);
+			void
+			setPoolSize(
+				unsigned int size
+			);
 
 
 			/** \brief whether to allow more connections to be open than the pool size
 			* \param yes is true if we can allocate more connections than pool_size if a connection is necessary
 			*/
-			void allowExtraAllocations(bool yes);
+			void
+			allowExtraAllocations(
+				bool yes
+			);
 
 
 			/** \brief returns the target size of the pool
 			*/
-			unsigned int getPoolSize();
+			unsigned int
+			getPoolSize();
 
 
 			/** \brief returns the number of connections currently open
 			*/
-			unsigned int currentlyAllocated();
+			unsigned int
+			currentlyAllocated();
 
 
 			/** \brief gets a connection
@@ -160,22 +169,34 @@ namespace tb
 			* 
 			* This function returns a pointer to a connection object. Once done with this connection object, return it using the .recycle() function
 			*/
-			tb::db::PostgresConnection* get();
+			tb::db::PostgresConnection*
+			get();
 
 
 			/** \brief adds a connection object back to the queue of available connections
 			* \param connection a PostgresConnection object pointer that should be returned to the queue of available connectiosn or discarded
 			*/
-			void recycle(tb::db::PostgresConnection* connection);
+			void
+			recycle(
+				tb::db::PostgresConnection* connection
+			);
 
 
-			/** \brief returns a connection pool to the database that was configured as default
+			/** \brief sets the instance used by ::instance()
+			* \param pool is the connection pool we are using
 			* 
-			* Gets the default (global) connection pool
-			* 
-			* \return reference to the default pool
+			* This allows us to use a different configuration than what was compiled in
 			*/
-			static PostgresConnectionPool& getDefaultPool();
+			void
+			configure(
+				std::string host,
+				std::string port,
+				std::string options,
+				std::string tty,
+				std::string dbname,
+				std::string login,
+				std::string password
+			);
 		};
 
 		/** \brief helper class that applies RAII to a connection in a connection pool
@@ -211,13 +232,15 @@ namespace tb
 			/** \brief returns the PGconn pointer used by libpq functions
 			* \return handle for libpq functions
 			*/
-			PGconn* operator()();
+			PGconn*
+			operator()();
 
 
 			/** \brief returns the connection object being used
 			* \return connection object which holds the information ahout our active connection
 			*/
-			PostgresConnection* get_connection();
+			PostgresConnection*
+			get_connection();
 
 		};
 
@@ -225,7 +248,20 @@ namespace tb
 		/** \brief Initializes a postgres database with the tables and information required by TradeBot
 		* \param connection connects to a database we are initializing
 		*/
-		void initialize_database(PostgresConnection& connection);
+		void
+		initialize_database(
+			PostgresConnection& connection
+		);
+
+
+		/** \brief returns a connection pool to the database that was configured as default
+		*
+		* Gets the default (global) connection pool
+		*
+		* \return reference to the default pool
+		*/
+		PostgresConnectionPool&
+		pool_instance();
 	}
 }
 

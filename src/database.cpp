@@ -265,7 +265,7 @@ static tb::db::PostgresConnectionPool default_pool(
 );
 static bool initialized = false;
 tb::db::PostgresConnectionPool&
-tb::db::PostgresConnectionPool::getDefaultPool()
+tb::db::pool_instance()
 {
 	if (!initialized)
 	{
@@ -274,6 +274,27 @@ tb::db::PostgresConnectionPool::getDefaultPool()
 		initialized = true;
 	}
 	return default_pool;
+}
+
+
+void
+tb::db::PostgresConnectionPool::configure(
+	std::string host,
+	std::string port,
+	std::string options,
+	std::string tty,
+	std::string dbname,
+	std::string login,
+	std::string password
+)
+{
+	this->host = host;
+	this->port = port;
+	this->options = options;
+	this->tty = tty;
+	this->dbname = dbname;
+	this->login = login;
+	this->password = password;
 }
 
 
@@ -291,7 +312,7 @@ tb::db::PostgresConnectionGuard::PostgresConnectionGuard() :
 	pool(nullptr),
 	connection(nullptr)
 {
-	pool = &tb::db::PostgresConnectionPool::getDefaultPool();
+	pool = &tb::db::pool_instance();
 	connection = pool->get();
 }
 
@@ -323,8 +344,8 @@ tb::db::initialize_database(
 )
 {
 	tb::db::PostgresConnectionGuard g(
-		&tb::db::PostgresConnectionPool::getDefaultPool(),
-		tb::db::PostgresConnectionPool::getDefaultPool().get()
+		&tb::db::pool_instance(),
+		tb::db::pool_instance().get()
 	);
 
 	PGresult* result;
