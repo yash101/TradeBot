@@ -6,5 +6,7 @@ CREATE TABLE IF NOT EXISTS "order_history" (
 	avg_price			FLOAT(4)		NOT NULL,
 	quantity			INTEGER			NOT NULL,
 	status				VARCHAR(16)		NOT NULL,
+	strike				FLOAT(4),
+	expiry				TIMESTAMP,
 	extra				JSONB
 );
