@@ -22,14 +22,14 @@ class User
 	string first_name;
 	string last_name
 
-	long tdameritrade_id;
+	string tdameritrade_id;
 };
 ```
 
 ### TD Ameritrade Root Authentication
 
 ```
-class TDAmeritradeAccount
+class TDAmeritradeRootAccount
 {
 	long acct_id;
 	long primary_acct_no;

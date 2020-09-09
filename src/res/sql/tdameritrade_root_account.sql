@@ -1,8 +1,8 @@
-CREATE TABLE IF NOT EXISTS tdameritrade_authentication (
-	uid SERIAL NOT NULL PRIMARY KEY,
-	primaryAccountNumber VARCHAR(24) NOT NULL PRIMARY KEY,
-	refreshTokenExpiry TIMESTAMP NOT NULL PRIMARY KEY,
-	accessTokenExpiry TIMESTAMP NOT NULL PRIMARY KEY,
-	refreshToken TEXT NOT NULL,
-	accessToken TEXT
+CREATE TABLE IF NOT EXISTS "tdameritrade_authentication" (
+	local_id		SERIAL		NOT NULL	PRIMARY KEY,
+	primary_acct_no	INTEGER(8)	NOT NULL	PRIMARY KEY,
+	refresh_token	TEXT,
+	access_token	TEXT,			--- should be cached in a hashmap in TradeBot locally
+	refresh_exp		TIMESTAMP,
+	access_exp		TIMESTAMP
 );
