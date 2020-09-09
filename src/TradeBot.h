@@ -55,6 +55,10 @@ namespace tb
         check_cmdline_arg(
             std::string key
         );
+
+
+        static TradeBot&
+        instance();
     };
 }
 

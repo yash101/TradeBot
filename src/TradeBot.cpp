@@ -110,11 +110,20 @@ tb::TradeBot::check_cmdline_arg(
 }
 
 
+tb::TradeBot* tradebot;
+tb::TradeBot&
+tb::TradeBot::instance()
+{
+    return *tradebot;
+}
+
+
 /** \brief Entry point for TradeBot
 */
 int main(int argc, char** argv)
 {
-    tb::TradeBot trbt(argc, argv);
+    tradebot = new tb::TradeBot(argc, argv);
 
+    delete tradebot;
     return 0;
 }

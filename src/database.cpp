@@ -3,7 +3,10 @@
 #include <sstream>
 #include <exception>
 #include <iostream>
+#include <vector>
 
+#include "res/bins.h"
+#include "TradeBot.h"
 
 tb::db::PostgresConnection::PostgresConnection(
 	std::string host = "",
@@ -378,52 +381,52 @@ tb::db::initialize_database(
 	PGresult* result;
 	ExecStatusType status;
 
-	const char* stmt = "CREATE TABLE IF NOT EXISTS \"user\" ("
-		"	uid SERIAL NOT NULL PRIMARY KEY,"
-		"	email VARCHAR(320),"
-		"	first_name VARCHAR(256),"
-		"	last_name VARCHAR(256)"
-		");";
+	std::vector<const char*> filenames{
+		"sql/configuration.sql",
+		"sql/equity_time_point.sql",
+		"sql/fundamentals.sql",
+		"sql/option_time_point.sql",
+		"sql/order.sql",
+		"sql/tdameritrade_order.sql",
+		"sql/tdameritrade_root_account.sql",
+		"sql/tdameritrade_trading_account.sql",
+		"sql/user.sql",
+		nullptr
+	};
 
-	printf("%p\n", g());
-
-
-	// User table
-	result = PQexec(
-		g(),
-		stmt
-	);
-
-	status = PQresultStatus(result);
-	if (status != PGRES_COMMAND_OK)
+	for (auto it = filenames.begin(); it != filenames.end(); ++it)
 	{
-		printf("Error: %s:%d: %s\n", __FILE__, __LINE__, PQresStatus(status));
+		const char* stmt = tb::get_res(*it);
+
+		if (tb::TradeBot::instance().check_cmdline_arg("verbose"))
+			printf("Executing statement:\n%s\n", stmt);
+
+		result = PQexec(
+			g(),
+			stmt
+		);
+
+		if (result == nullptr)
+		{
+			printf(
+				"Error: failed to execute query:\nQuery: %s\nQuery File: %s\nError: %s:%d\n",
+				stmt,
+				*it,
+				__FILE__,
+				__LINE__
+			);
+
+			continue;
+		}
+
+		status = PQresultStatus(result);
+		if (status != PGRES_COMMAND_OK)
+		{
+			printf("Failed to execute statement:\n%s\n", stmt);
+			printf("File: %s\n", *it);
+			printf("Error: %s:%d: \t%s\n", __FILE__, __LINE__, PQresStatus(status));
+		}
+
+		PQclear(result);
 	}
-
-	PQclear(result);
-
-	// TD Ameritrade Authentication table
-	result = PQexec(
-		g(),
-		"CREATE TABLE IF NOT EXISTS \"tdameritrade_authentication\" ("
-		"	uid SERIAL NOT NULL PRIMARY KEY,"
-		"	primaryAccountNumber VARCHAR(24) NOT NULL PRIMARY KEY,"
-		"	refreshTokenExpiry TIMESTAMP,"
-		"	accessTokenExpiry TIMESTAMP,"
-		"	refreshToken TEXT,"
-		"	accessToken TEXT"
-		");"
-	);
-
-	status = PQresultStatus(result);
-	if (status != PGRES_COMMAND_OK)
-	{
-		printf("Error: %s:%d: %s\n", __FILE__, __LINE__, PQresStatus(status));
-	}
-
-//	result = PQexec(
-//		g(),
-//		""
-//	);
-
 }
