@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS "company_fundamentals" (
+CREATE TABLE IF NOT EXISTS "fundamentals" (
 	symbol					VARCHAR(128)	NOT NULL,
 	record_date				TIMESTAMP,
 	dividend_yield			FLOAT(4),		--- quarterly

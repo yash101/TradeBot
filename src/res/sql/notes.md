@@ -129,3 +129,14 @@ class OptionTimePoint
 };
 ```
 
+### Fundamentals
+
+```
+class Fundamentals
+{
+	string symbol;
+	timestamp acquisition;
+
+	// a bunch of fundamental data...
+};
+```
