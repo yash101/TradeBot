@@ -1,4 +1,4 @@
-#include "TradeBot/TradeBot.h"
+#include "../src/TradeBot/TradeBot.h"
 
 /** \brief Entry point for TradeBot
 */

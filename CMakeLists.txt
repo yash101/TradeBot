@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 
 # Project name
 project(TradeBot CXX)
@@ -19,6 +19,13 @@ endif()
 
 # Get PKG Config
 find_package(PkgConfig REQUIRED)
+find_package(httplib REQUIRED)
+find_package(Threads REQUIRED)
+find_package(PostgreSQL REQUIRED)
+find_package(httplib REQUIRED)
+
+pkg_check_modules(QuantLib REQUIRED quantlib)
+pkg_check_modules(Json REQUIRED nlohmann_json)
 
 # Default installation directories
 include(GNUInstallDirs)
@@ -35,17 +42,13 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage -fPIC")
 endif()
 
-# find libraries
-pkg_check_modules(QuantLib REQUIRED quantlib)
-pkg_check_modules(Json REQUIRED nlohmann_json)
-
-# find packages
-find_package(httplib REQUIRED)
-find_package(Threads REQUIRED)
-find_package(PostgreSQL REQUIRED)
+add_subdirectory(res)
 
 # add the source files directory
 add_subdirectory(src)
+
+# add the targets directory
+add_subdirectory(targets)
 
 # set up GoogleTest
 include(cmake/googletest.cmake)

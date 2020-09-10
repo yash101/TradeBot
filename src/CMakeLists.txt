@@ -1,28 +1,29 @@
-# get the name of the main output binary
-set(BINARY ${CMAKE_PROJECT_NAME})
-
 # enable CUDA
 if (DEFINED CMAKE_CUDA_COMPILER_ID)
 	set_target_properties(${BINARY} PROPERTIES CUDA_SEPARABLE_COMPILATION on)
 	set_target_properties(${BINARY}_lib PROPERTIES CUDA_SEPARABLE_COMPILATION on)
-endif()
-
-# find the files to compile
-if (DEFINED CMAKE_CUDA_COMPILER_ID)
-file(GLOB_RECURSE SOURCES LIST_DIRECTORIES false *.cpp *.cu)
+	file(GLOB_RECURSE SOURCES LIST_DIRECTORIES false *.h *.cpp *.cu)
 else()
-file(GLOB_RECURSE SOURCES LIST_DIRECTORIES false *.cpp)
+	file(GLOB_RECURSE SOURCES LIST_DIRECTORIES false *.h *.cpp)
 endif()
-file(GLOB_RECURSE HEADERS LIST_DIRECTORIES false *.h)
-set(HEADERS ${HEADERS})
 
-# add the binary output files - the binary and the library
-add_executable(TradeBot main.cpp ${HEADERS})
-add_library(TradeBotLib ${SOURCES} ${HEADERS})
+# turn TradeBot into a library
+add_library(TradeBotLib SHARED ${SOURCES})
+target_link_libraries(TradeBotLib ${QuantLib_LIBRARIES})
+target_link_libraries(TradeBotLib ${Json_LIBRARIES})
+target_link_libraries(TradeBotLib ${CURL_INCLUDE_DIRS})
+target_link_libraries(TradeBotLib ${PostgreSQL_LIBRARIES})
+target_link_libraries(TradeBotLib Binaries)
+target_link_libraries(TradeBotLib ${HTTPLIB_LIBRARY})
 
-# Build the TD Ameritrade authenticator separately
+target_include_directories(TradeBotLib PUBLIC ${QuantLib_INCLUDE_DIRS})
+target_include_directories(TradeBotLib PUBLIC ${Json_INCLUDE_DIRS})
+target_include_directories(TradeBotLib PUBLIC ${CURL_INCLUDE_DIRS})
+target_include_directories(TradeBotLib PUBLIC ${PostgreSQL_INCLUDE_DIRS})
+target_include_directories(TradeBotLib PUBLIC ${httplib_INCLUDE_DIRS})
+
+add_subdirectory(utilities)
 add_subdirectory(TradeBot)
 add_subdirectory(tdapi)
-add_subdirectory(fred)
 add_subdirectory(quant)
-add_subdirectory(utilities)
+add_subdirectory(fred)

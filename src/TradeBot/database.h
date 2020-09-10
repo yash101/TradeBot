@@ -197,6 +197,16 @@ namespace tb
 				std::string login,
 				std::string password
 			);
+
+
+			/** \brief returns a connection pool to the database that was configured as default
+			*
+			* Gets the default (global) connection pool
+			*
+			* \return reference to the default pool
+			*/
+			static PostgresConnectionPool&
+			instance();			
 		};
 
 		/** \brief helper class that applies RAII to a connection in a connection pool
@@ -241,27 +251,16 @@ namespace tb
 			*/
 			PostgresConnection*
 			get_connection();
-
-
-
-			/** \brief Initializes a postgres database with the tables and information required by TradeBot
-			* \param connection connects to a database we are initializing
-			*/
-			void
-			initialize_database(
-				PostgresConnection& connection
-			);
-
-
-			/** \brief returns a connection pool to the database that was configured as default
-			*
-			* Gets the default (global) connection pool
-			*
-			* \return reference to the default pool
-			*/
-			PostgresConnectionPool&
-			instance();
 		};
+
+		/** \brief Initializes a postgres database with the tables and information required by TradeBot
+		* \param connection connects to a database we are initializing
+		*/
+		void
+		initialize_database(
+			PostgresConnection& connection
+		);
+
 	}
 }
 

@@ -34,7 +34,10 @@ namespace tb
 
         /** \brief Initialize TradeBot
         */
-        int initialize(int argc, const char** argv);
+        int initialize(
+            int argc,
+            char** argv
+        );
 
 
         /** \brief Destructor

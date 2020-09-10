@@ -1,7 +1,6 @@
 #include "TradeBot.h"
-#include "Configuration.h"
+#include "../Configuration.h"
 #include "database.h"
-
 #include <sstream>
 #include <iostream>
 
@@ -19,7 +18,7 @@ tb::TradeBot::~TradeBot()
 int
 tb::TradeBot::initialize(
     int argc,
-    const char** argv
+    char** argv
 )
 {
     process_args(argc, argv);
@@ -59,7 +58,7 @@ tb::TradeBot::startup_db()
     setif(password, "postgres.password", DB_PASSWORD);
 
 
-    tb::db::pool_instance().configure(
+    tb::db::PostgresConnectionPool::instance().configure(
         host,
         port,
         options,
@@ -73,7 +72,7 @@ tb::TradeBot::startup_db()
 
     std::cout << "Initializing database..." << std::endl;
     // initialize the database
-    tb::db::initialize_database(*tb::db::pool_instance().get());
+    tb::db::initialize_database(*tb::db::PostgresConnectionPool::instance().get());
 }
 
 
@@ -119,9 +118,9 @@ tb::TradeBot::check_cmdline_arg(
 }
 
 
-static tb::TradeBot&
+tb::TradeBot&
 tb::TradeBot::instance()
 {
-    static tb::TradeBot tb;
-    return tb;
+    static tb::TradeBot tradebot;
+    return tradebot;
 }

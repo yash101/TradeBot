@@ -1,12 +1,12 @@
-#include "Configuration.h"
-#include "database.h"
 #include <sstream>
 #include <exception>
 #include <iostream>
 #include <vector>
 
-#include "res/bins.h"
+#include "database.h"
 #include "TradeBot.h"
+#include "../Configuration.h"
+#include "../../res/bins.h"
 
 tb::db::PostgresConnection::PostgresConnection(
 	std::string host = "",
@@ -342,7 +342,7 @@ tb::db::PostgresConnectionGuard::PostgresConnectionGuard() :
 	pool(nullptr),
 	connection(nullptr)
 {
-	pool = &tb::db::pool_instance();
+	pool = &tb::db::PostgresConnectionPool::instance();
 	connection = pool->get();
 }
 
@@ -374,8 +374,8 @@ tb::db::initialize_database(
 )
 {
 	tb::db::PostgresConnectionGuard g(
-		&tb::db::pool_instance(),
-		tb::db::pool_instance().get()
+		&tb::db::PostgresConnectionPool::instance(),
+		tb::db::PostgresConnectionPool::instance().get()
 	);
 
 	PGresult* result;
