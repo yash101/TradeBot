@@ -29,7 +29,12 @@ namespace tb
 
         /** \brief Constructor
         */
-        TradeBot(int argc, char** argv);
+        TradeBot();
+
+
+        /** \brief Initialize TradeBot
+        */
+        int initialize(int argc, const char** argv);
 
 
         /** \brief Destructor
@@ -55,7 +60,6 @@ namespace tb
         check_cmdline_arg(
             std::string key
         );
-
 
         static TradeBot&
         instance();

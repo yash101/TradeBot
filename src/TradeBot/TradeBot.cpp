@@ -6,16 +6,25 @@
 #include <iostream>
 
 
-tb::TradeBot::TradeBot(int argc, char** argv)
+tb::TradeBot::TradeBot()
 {
-    process_args(argc, argv);
-    print_help();
-    startup_db();
 }
 
 
 tb::TradeBot::~TradeBot()
 {
+}
+
+
+int
+tb::TradeBot::initialize(
+    int argc,
+    const char** argv
+)
+{
+    process_args(argc, argv);
+    print_help();
+    startup_db();
 }
 
 
@@ -110,20 +119,9 @@ tb::TradeBot::check_cmdline_arg(
 }
 
 
-tb::TradeBot* tradebot;
-tb::TradeBot&
+static tb::TradeBot&
 tb::TradeBot::instance()
 {
-    return *tradebot;
-}
-
-
-/** \brief Entry point for TradeBot
-*/
-int main(int argc, char** argv)
-{
-    tradebot = new tb::TradeBot(argc, argv);
-
-    delete tradebot;
-    return 0;
+    static tb::TradeBot tb;
+    return tb;
 }

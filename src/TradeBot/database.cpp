@@ -295,7 +295,7 @@ static tb::db::PostgresConnectionPool default_pool(
 );
 static bool initialized = false;
 tb::db::PostgresConnectionPool&
-tb::db::pool_instance()
+tb::db::PostgresConnectionPool::instance()
 {
 	if (!initialized)
 	{

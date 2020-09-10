@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
+# Project name
 project(TradeBot CXX)
 
+# CUDA Configuration
 include(CheckLanguage)
 check_language(CUDA)
 if (DEFINED CMAKE_CUDA_COMPILER_ID)
@@ -15,24 +17,40 @@ else()
     message("CUDA was not found on this system and has been disabled")
 endif()
 
+# Get PKG Config
 find_package(PkgConfig REQUIRED)
 
+# Default installation directories
 include(GNUInstallDirs)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
+# Let's use C++ 17 :P
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Set up GCC / CLANG
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage -fPIC")
 endif()
 
+# find libraries
+pkg_check_modules(QuantLib REQUIRED quantlib)
+pkg_check_modules(Json REQUIRED nlohmann_json)
+
+# find packages
+find_package(httplib REQUIRED)
+find_package(Threads REQUIRED)
+find_package(PostgreSQL REQUIRED)
+
+# add the source files directory
 add_subdirectory(src)
 
+# set up GoogleTest
 include(cmake/googletest.cmake)
 fetch_googletest(${PROJECT_SOURCE_DIR}/cmake ${PROJECT_BINARY_DIR}/googletest)
 
+# Set up testing
 enable_testing()
 add_subdirectory(test)
