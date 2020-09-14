@@ -1,6 +1,8 @@
 #include "TradeBot.h"
 #include "../Configuration.h"
+#include "database_connection.h"
 #include "database.h"
+
 #include <sstream>
 #include <iostream>
 
@@ -72,7 +74,7 @@ tb::TradeBot::startup_db()
 
     std::cout << "Initializing database..." << std::endl;
     // initialize the database
-    tb::db::initialize_database(*tb::db::PostgresConnectionPool::instance().get());
+    tb::db::initialize_db();
 }
 
 

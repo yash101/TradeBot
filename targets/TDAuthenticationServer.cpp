@@ -1,4 +1,4 @@
-#include "../src/tdapi/authenticationsvr.h"
+#include "../src/tdapi/authentication_server.h"
 #include "../src/TradeBot/database.h"
 
 int main(int argc, char** argv)
@@ -40,8 +40,6 @@ int main(int argc, char** argv)
     std::cout << "Authorization Code: " << std::get<1>(ret) << std::endl
         << "Refresh Token: " << std::get<2>(ret) << std::endl
         << "Access Token: " << std::get<3>(ret) << std::endl;
-
-    tb::db::initialize_database(*tb::db::PostgresConnectionGuard().get_connection());
 
     return 0;
 }
