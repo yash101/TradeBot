@@ -8,14 +8,15 @@ namespace tb
 {
 	namespace Fred
 	{
-		class FredSeries;
+		class FredCategoryTags;
+		class FredCategorySeries;
 		class FredCategory;
 		class FredAPI;
 
-		class FredSeries
+		class FredCategorySeries
 		{
 			
-		private:
+		public:
 
 			std::string id;
 			std::string title;
@@ -37,8 +38,6 @@ namespace tb
 
 			std::string notes;
 
-		public:
-
 			static std::vector<FredSeries>
 			get_category_series(
 				FredAPI& api,
@@ -55,8 +54,6 @@ namespace tb
 			int category_id;
 			int parent_category_id;
 			std::string category_name;
-
-		private:
 
 			void set_category_id(int id);
 			int get_category_id();
@@ -85,8 +82,6 @@ namespace tb
 				FredAPI& api,
 				int category
 			);
-
-
 
 		};
 
