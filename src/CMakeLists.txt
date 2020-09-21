@@ -13,7 +13,7 @@ target_link_libraries(TradeBotLib ${QuantLib_LIBRARIES})
 target_link_libraries(TradeBotLib ${Json_LIBRARIES})
 target_link_libraries(TradeBotLib ${CURL_INCLUDE_DIRS})
 target_link_libraries(TradeBotLib ${PostgreSQL_LIBRARIES})
-target_link_libraries(TradeBotLib Binaries)
+target_link_libraries(TradeBotLib TradeBot_Resources)
 target_link_libraries(TradeBotLib ${HTTPLIB_LIBRARY})
 
 target_include_directories(TradeBotLib PUBLIC ${QuantLib_INCLUDE_DIRS})
