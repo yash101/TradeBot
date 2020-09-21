@@ -1,6 +1,7 @@
-CREATE TABLE IF NOT EXISTS "user" (
-	uid						SERIAL			NOT NULL		PRIMARY KEY,
-	email					VARCHAR(320),
-	first_name				VARCHAR(256),
-	last_name				VARCHAR(256),
+CREATE TABLE IF NOT EXISTS "users" (
+    user_id         BIGINT          PRIMARY KEY     GENERATED ALWAYS AS IDENTITY,
+    username        VARCHAR(96),
+    full_name       VARCHAR(128),
+    email           VARCHAR(256)
 );
+

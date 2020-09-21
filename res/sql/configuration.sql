@@ -1,4 +1,5 @@
-CREATE TABLE IF NOT EXISTS "configuration" (
-	variable		VARCHAR(128)	NOT NULL	PRIMARY KEY,
-	value			TEXT
+CREATE TABLE IF NOT EXISTS "Configuration" (
+    opt             VARCHAR(32)     NOT NULL    PRIMARY KEY,
+    val             TEXT,
+    last_updated    TIMESTAMP       NOT NULL    default current_timestamp
 );
