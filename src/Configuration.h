@@ -2,7 +2,7 @@
 #define _CONFIGURATION_H
 
 #ifndef DB_HOST
-#define DB_HOST "localhost"
+#define DB_HOST "127.0.0.1"
 #endif
 
 #ifndef DB_PORT
@@ -18,7 +18,7 @@
 #endif
 
 #ifndef DB_NAME
-#define DB_NAME "TradeBot-Development"
+#define DB_NAME "TradeBotV2"
 #endif
 
 #ifndef DB_LOGIN

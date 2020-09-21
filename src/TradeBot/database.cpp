@@ -1,69 +1,116 @@
 #include "database.h"
 #include "database_connection.h"
 #include "../../res/bins.h"
+#include "TradeBot.h"
+#include <libpq-fe.h>
 
 #include <vector>
-#include "TradeBot.h"
+#include <iostream>
+
+
+static bool
+_handle_error(
+	PGresult* result,
+	ExecStatusType& status,
+	const char* codefilename,
+	int codelinenum,
+	const char* file
+)
+{
+	if (result == nullptr)
+	{
+		std::cout << "Error: PostgreSQL failed allocating result object" << std::endl;
+
+		throw std::exception();
+	}
+
+	if (status != PGRES_COMMAND_OK)
+	{
+		std::cout << "Error: failed to execute query" << std::endl
+			<< "File: " << file << std::endl << "Error: " << PQresStatus(status) << std::endl
+			<< codefilename << ":" << codelinenum << std::endl
+			<< tb::get_res(file);
+		
+		PQclear(result);		// gc
+
+		throw std::exception();
+	}
+}
+
+#define handle_error(filename) _handle_error(result, status, __FILE__, __LINE__, filename)
 
 void
 tb::db::initialize_db()
 {
-	tb::db::PostgresConnectionGuard g;
+	tb::db::PostgresConnectionGuard connection;
+	auto& g = connection; // delete this line after building this function. fixes build errors while building this function
 
 	PGresult* result;
 	ExecStatusType status;
 
-	// names of files in /res/sql
-	// run the query for each of these
-	std::vector<const char*> filenames{
-		"sql/configuration.sql",
-		"sql/equity_time_point.sql",
-		"sql/fundamentals.sql",
-		"sql/option_time_point.sql",
-		"sql/order.sql",
-		"sql/tdameritrade_order.sql",
-		"sql/tdameritrade_root_account.sql",
-		"sql/tdameritrade_trading_account.sql",
-		"sql/user.sql"
-	};
+	bool debug = tb::TradeBot::instance().get_cmdline_arg("verbose") == "true";
 
-	// run each query
-	for (auto it = filenames.begin(); it != filenames.end(); ++it)
-	{
-		// get the string with the statement from the initial filename that was embedded
-		const char* stmt = tb::get_res(*it);
+	if (debug)
+		std::cout << "Creating types in postgres database if they don't exist..." << std::endl;
+	
+	result = PQexec(connection(), tb::get_res("sql/Types.sql"));
+	status = PQresultStatus(result);
+	handle_error("sql/Types.sql");
+	PQclear(result);
 
-		// print if we are being verbose
-		if (tb::TradeBot::instance().check_cmdline_arg("verbose"))
-			printf("Executing statement:\n%s\n", stmt);
 
-		// get the result
-		result = PQexec(
-			g(),
-			stmt
-		);
+	if (debug)
+		std::cout << "Creating table configuration if it does not exist..." << std::endl;
+	
+	result = PQexec(connection(), tb::get_res("sql/Configuration.sql"));
+	status = PQresultStatus(result);
+	handle_error("sql/Configuration.sql");
+	PQclear(result);
 
-		if (result == nullptr)
-		{
-			printf(
-				"Error: failed to execute query:\nQuery: %s\nQuery File: %s\nError: %s:%d\n",
-				stmt,
-				*it,
-				__FILE__,
-				__LINE__
-			);
 
-			continue;
-		}
+	if (debug)
+		std::cout << "Creating table users if it does not exist..." << std::endl;
+	
+	result = PQexec(connection(), tb::get_res("sql/User.sql"));
+	status = PQresultStatus(result);
+	handle_error("sql/User.sql");
+	PQclear(result);
 
-		status = PQresultStatus(result);
-		if (status != PGRES_COMMAND_OK)
-		{
-			printf("Failed to execute statement:\n%s\n", stmt);
-			printf("File: %s\n", *it);
-			printf("Error: %s:%d: \t%s\n", __FILE__, __LINE__, PQresStatus(status));
-		}
 
-		PQclear(result);
-	}
+	if (debug)
+		std::cout << "Creating table brokerage_account if it does not exist..." << std::endl;
+	
+	result = PQexec(connection(), tb::get_res("sql/BrokerageAccount.sql"));
+	status = PQresultStatus(result);
+	handle_error("sql/BrokerageAccount.sql");
+	PQclear(result);
+
+
+	if (debug)
+		std::cout << "Creating table tdameritrade_authentication if it does not exist..." << std::endl;
+	
+	result = PQexec(connection(), tb::get_res("sql/TDAmeritradeAuthentication.sql"));
+	status = PQresultStatus(result);
+	handle_error("sql/TDAmeritradeAuthentication.sql");
+	PQclear(result);
+
+
+	if (debug)
+		std::cout << "Creating table positions if it does not exist..." << std::endl;
+	
+	result = PQexec(connection(), tb::get_res("sql/Positions.sql"));
+	status = PQresultStatus(result);
+	handle_error("sql/Positions.sql");
+	PQclear(result);
+
+
+	if (debug)
+		std::cout << "Creating table orders if it does not exist..." << std::endl;
+	result = PQexec(connection(), tb::get_res("sql/Orders.sql"));
+	status = PQresultStatus(result);
+	handle_error("sql/Orders.sql");
+	PQclear(result);
+
+	if (debug)
+		std::cout << "Finished initializing the database and creating necessary tables" << std::endl;
 }

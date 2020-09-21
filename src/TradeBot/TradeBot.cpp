@@ -72,7 +72,9 @@ tb::TradeBot::startup_db()
 
 #undef setif
 
-    std::cout << "Initializing database..." << std::endl;
+    if (tb::TradeBot::get_cmdline_arg("verbose") == "true")
+        std::cout << "Initializing database..." << std::endl;
+
     // initialize the database
     tb::db::initialize_db();
 }
@@ -88,6 +90,9 @@ tb::TradeBot::print_help()
 #define sect(name) std::cout << std::endl << name << " Configuration:" << std::endl << std::endl
 
     std::cout << "Usage: TradeBot [arg1]=[value] [arg2]=[value]" << std::endl;
+
+    sect("TradeBot");
+    hlp("verbose", "verbose=true will activate detailed outputs");
 
     sect("Database");
     hlp("postgres.host", "hostname or domain name for the postgres database server");
