@@ -3,5 +3,4 @@ CREATE TABLE IF NOT EXISTS "user" (
 	email					VARCHAR(320),
 	first_name				VARCHAR(256),
 	last_name				VARCHAR(256),
-	tdameritrade_local_id	VARCHAR(32)
 );
