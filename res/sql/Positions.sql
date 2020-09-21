@@ -1,6 +1,3 @@
-CREATE TYPE InstrumentType AS ENUM ('stock', 'option');
-CREATE TYPE OptionDirection AS ENUM ('call', 'put');
-
 CREATE TABLE IF NOT EXISTS "positions" (
     position_id     BIGINT          NOT NULL    PRIMARY KEY     GENERATED ALWAYS AS IDENTITY,
     account_id      BIGINT          NOT NULL,

@@ -1,6 +1,3 @@
-CREATE TYPE OrderStatus AS ENUM ('waiting', 'triggered', 'cancelled', 'filled', 'partially_filled');
-CREATE TYPE OrderType AS ENUM ('market', 'limit', 'stop_limit', 'trailing_stop_price', 'trailing_stop_percent', 'moc', 'exercise', 'trail_stop_limit_price', 'trail_stop_limit_percent');
-
 CREATE TABLE IF NOT EXISTS "orders" (
     order_id        BIGINT          NOT NULL        PRIMARY KEY     GENERATED ALWAYS AS IDENTITY,
     account_id      BIGINT          NOT NULL,

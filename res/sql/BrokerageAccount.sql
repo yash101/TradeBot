@@ -1,5 +1,3 @@
-CREATE TYPE BrokerageName AS ENUM ('TDAmeritrade', 'IBKR', 'Robinhood', 'E*Trade');
-
 CREATE TABLE IF NOT EXISTS "brokerage_account" (
     account_id          BIGINT          NOT NULL        PRIMARY KEY     GENERATED ALWAYS AS IDENTITY,
     brokerage_id        BIGINT          NOT NULL,
