@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "database_connection.h"
+#include "webapi.h"
 
 namespace tb
 {
@@ -15,8 +16,9 @@ namespace tb
 
         std::unordered_map<std::string, std::string> cmdline_args;
         tb::db::PostgresConnectionPool db_connection_pool;
+        tb::WebAPI api;
 
-        void
+        bool
         print_help();
 
 
@@ -33,8 +35,14 @@ namespace tb
 
         /** \brief initializes the database types and tables
          */
-        void
+        bool
         startup_db();
+
+
+        /** \brief initialize web API
+         */
+        bool
+        startup_webapi();
 
     public:
 

@@ -34,17 +34,6 @@ namespace tb
                 std::string consumer_key
             );
         };
-
-        class ContinuousOauthAgent
-        {
-        private:
-
-            httplib::Server server;
-            std::string listen_ip, redirect_uri, consumer_key;
-
-        public:
-
-        };
     }
 }
 

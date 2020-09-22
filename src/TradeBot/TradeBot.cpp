@@ -2,9 +2,12 @@
 #include "../Configuration.h"
 #include "database_connection.h"
 #include "database.h"
+#include "../utilities/fromstring.h"
 
 #include <sstream>
 #include <iostream>
+
+#include <libpq-fe.h>
 
 
 tb::TradeBot::TradeBot()
@@ -14,18 +17,6 @@ tb::TradeBot::TradeBot()
 
 tb::TradeBot::~TradeBot()
 {
-}
-
-
-int
-tb::TradeBot::initialize(
-    int argc,
-    char** argv
-)
-{
-    process_args(argc, argv);
-    print_help();
-    startup_db();
 }
 
 
@@ -45,46 +36,25 @@ tb::TradeBot::process_args(
 }
 
 
-void
-tb::TradeBot::startup_db()
+int
+tb::TradeBot::initialize(
+    int argc,
+    char** argv
+)
 {
-    std::string host, port, options, dbname, login, password;
-
-#define setif(var, cmdline, cfg) var = (check_cmdline_arg(cmdline)) ? get_cmdline_arg(cmdline) : std::string(cfg)
-
-    setif(host, "postgres.host", DB_HOST);
-    setif(port, "postgres.port", std::to_string(DB_PORT));
-    setif(options, "postgres.options", DB_OPTIONS);
-    setif(dbname, "postgres.dbname", DB_NAME);
-    setif(login, "postgres.login", DB_LOGIN);
-    setif(password, "postgres.password", DB_PASSWORD);
-
-
-    db_connection_pool.configure(
-        host,
-        port,
-        options,
-        "",
-        dbname,
-        login,
-        password
-    );
-
-#undef setif
-
-    if (tb::TradeBot::get_cmdline_arg("verbose") == "true")
-        std::cout << "Initializing database..." << std::endl;
-
-    // initialize the database
-    tb::db::initialize_db(*this);
+    process_args(argc, argv);
+    if (print_help()) return 0;
+    if (startup_db()) return 1;
+    if (startup_webapi()) return 1;
+    return 0;
 }
 
 
-void
+bool
 tb::TradeBot::print_help()
 {
     if (!(check_cmdline_arg("--help") || check_cmdline_arg("-h") || check_cmdline_arg("help")))
-        return; // no help needed
+        return false; // no help needed
 
 #define hlp(opt, msg) std::cout << "\t" << opt << "\t" << msg << std::endl
 #define sect(name) std::cout << std::endl << name << " Configuration:" << std::endl << std::endl
@@ -102,8 +72,93 @@ tb::TradeBot::print_help()
     hlp("postgres.login", "username to login with");
     hlp("postgres.password", "password to login with");
 
+    sect("Configuration");
+    hlp("configure.webapi.listenaddr", "listen address for the webapi");
+    hlp("configure.webapi.listenport", "port on which the webapi should listen at");
+    hlp("configure.webapi.baseurl", "base url that the webapi listens at");
+
 #undef sect
 #undef hlp
+}
+
+
+bool
+tb::TradeBot::startup_db()
+{
+    try
+    {
+    
+        std::string host, port, options, dbname, login, password;
+
+#define setif(var, cmdline, cfg) var = (check_cmdline_arg(cmdline)) ? get_cmdline_arg(cmdline) : std::string(cfg)
+
+        setif(host, "postgres.host", DB_HOST);
+        setif(port, "postgres.port", std::to_string(DB_PORT));
+        setif(options, "postgres.options", DB_OPTIONS);
+        setif(dbname, "postgres.dbname", DB_NAME);
+        setif(login, "postgres.login", DB_LOGIN);
+        setif(password, "postgres.password", DB_PASSWORD);
+
+
+        db_connection_pool.configure(
+            host,
+            port,
+            options,
+            "",
+            dbname,
+            login,
+            password
+        );
+
+#undef setif
+
+        if (tb::TradeBot::get_cmdline_arg("verbose") == "true")
+            std::cout << "Initializing database..." << std::endl;
+
+        // initialize the database
+        tb::db::initialize_db(*this);
+    }
+    catch(std::exception& e)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+bool
+tb::TradeBot::startup_webapi()
+{
+    // get webapi listen addr, port and base addr from db
+    std::string webapi_ip = get_cmdline_arg("confugre.webapi.listenaddr");
+    std::string webapi_port = get_cmdline_arg("configure.webapi.listenport");
+    std::string webapi_baseurl = get_cmdline_arg("configure.webapi.baseurl");
+
+    tb::db::PostgresConnectionGuard connection(get_db_pool());
+    bool debug = get_cmdline_arg("verbose") == "true";
+    
+    auto result = PQexec(connection(), "BEGIN");
+    if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        if (debug)
+            fprintf(stderr, "%s:%d: Error beginning Postgres transaction:\n\t%s\n", __FILE__, __LINE__, PQerrorMessage(connection()));
+        
+        PQclear(result);
+        connection.get_connection()->reset();
+        return false;
+    }
+    
+    result = PQexec(connection(), "END");
+    if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        if (debug)
+            fprintf(stderr, "%s:%d: Error ending Postgres transaction:\n\t%s\n", __FILE__, __LINE__, PQerrorMessage(connection()));
+        
+        PQclear(result);
+        connection.get_connection()->reset();
+        return false;
+    }
 }
 
 
