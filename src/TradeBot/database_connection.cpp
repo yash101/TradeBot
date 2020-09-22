@@ -329,12 +329,21 @@ tb::db::PostgresConnectionPool::configure(
 
 
 tb::db::PostgresConnectionGuard::PostgresConnectionGuard(
-	PostgresConnectionPool* pool,
+	PostgresConnectionPool& pool,
 	PostgresConnection* conn
 ) :
-	pool(pool),
+	pool(&pool),
 	connection(conn)
 {
+}
+
+
+tb::db::PostgresConnectionGuard::PostgresConnectionGuard(
+	tb::db::PostgresConnectionPool& pool
+) :
+	pool(&pool)
+{
+	connection = pool.get();
 }
 
 

@@ -226,8 +226,16 @@ namespace tb
 			* \param connection is the connection object we are guarding
 			*/
 			PostgresConnectionGuard(
-				PostgresConnectionPool* pool,
+				PostgresConnectionPool& pool,
 				PostgresConnection* conn
+			);
+
+
+			/** \brief constructor which inputs just a connection pool
+			 * \param pool is a connection pool
+			 */
+			PostgresConnectionGuard(
+				PostgresConnectionPool& pool
 			);
 
 

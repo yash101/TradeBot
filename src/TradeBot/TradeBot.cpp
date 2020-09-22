@@ -60,7 +60,7 @@ tb::TradeBot::startup_db()
     setif(password, "postgres.password", DB_PASSWORD);
 
 
-    tb::db::PostgresConnectionPool::instance().configure(
+    db_connection_pool.configure(
         host,
         port,
         options,
@@ -76,7 +76,7 @@ tb::TradeBot::startup_db()
         std::cout << "Initializing database..." << std::endl;
 
     // initialize the database
-    tb::db::initialize_db();
+    tb::db::initialize_db(*this);
 }
 
 
@@ -124,10 +124,8 @@ tb::TradeBot::check_cmdline_arg(
     return cmdline_args.find(key) != cmdline_args.end();
 }
 
-
-tb::TradeBot&
-tb::TradeBot::instance()
+tb::db::PostgresConnectionPool&
+tb::TradeBot::get_db_pool()
 {
-    static tb::TradeBot tradebot;
-    return tradebot;
+    return db_connection_pool;
 }

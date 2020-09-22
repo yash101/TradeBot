@@ -4,7 +4,7 @@
 */
 int main(int argc, char** argv)
 {
-	tb::TradeBot::instance().initialize(argc, argv);
-
+	tb::TradeBot tbot;
+	tbot.initialize(argc, argv);
 	return 0;
 }

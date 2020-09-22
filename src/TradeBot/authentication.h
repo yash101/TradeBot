@@ -1,0 +1,6 @@
+#ifndef _TRADEBOT_AUTHENTICATION_H
+#define _TRADEBOT_AUTHENTICATION_H
+
+
+
+#endif

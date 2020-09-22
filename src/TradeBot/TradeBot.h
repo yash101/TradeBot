@@ -3,6 +3,8 @@
 
 #include <unordered_map>
 
+#include "database_connection.h"
+
 namespace tb
 {
     /** \brief The main class for TradeBot where the magic lives. This class contains references to all important parts of TradeBot and it's functionality drives the software
@@ -12,16 +14,25 @@ namespace tb
     private:
 
         std::unordered_map<std::string, std::string> cmdline_args;
+        tb::db::PostgresConnectionPool db_connection_pool;
 
         void
         print_help();
 
+
+        /** \brief processes the arguments and makes it easy to check for variables
+         * \param argc is the number of arguments provided
+         * \param argv is the array of strings
+         */
         void
         process_args(
             int argc,
             char** argv
         );
 
+
+        /** \brief initializes the database types and tables
+         */
         void
         startup_db();
 
@@ -33,6 +44,8 @@ namespace tb
 
 
         /** \brief Initialize TradeBot
+         * \param argc the number of arguments provided
+         * \param argv array of strings with the arguments
         */
         int initialize(
             int argc,
@@ -64,8 +77,11 @@ namespace tb
             std::string key
         );
 
-        static TradeBot&
-        instance();
+
+        /** \brief get a reference to the database pool
+         */
+        tb::db::PostgresConnectionPool&
+        get_db_pool();
     };
 }
 

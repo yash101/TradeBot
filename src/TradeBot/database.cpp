@@ -40,15 +40,17 @@ _handle_error(
 #define handle_error(filename) _handle_error(result, status, __FILE__, __LINE__, filename)
 
 void
-tb::db::initialize_db()
+tb::db::initialize_db(
+	tb::TradeBot& tradebot
+)
 {
-	tb::db::PostgresConnectionGuard connection;
-	auto& g = connection; // delete this line after building this function. fixes build errors while building this function
+	tb::db::PostgresConnectionGuard connection(tradebot.get_db_pool());
 
 	PGresult* result;
 	ExecStatusType status;
 
-	bool debug = tb::TradeBot::instance().get_cmdline_arg("verbose") == "true";
+	bool debug = tradebot.get_cmdline_arg("verbose") == "true";
+
 
 	if (debug)
 		std::cout << "Creating types in postgres database if they don't exist..." << std::endl;
