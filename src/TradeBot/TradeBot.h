@@ -1,6 +1,11 @@
 #ifndef _TRADEBOT_H
 #define _TRADEBOT_H
 
+namespace tb
+{
+    class TradeBot;
+}
+
 #include <unordered_map>
 
 #include "database_connection.h"

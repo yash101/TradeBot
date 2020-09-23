@@ -1,9 +1,9 @@
-#include "database.h"
 #include "database_connection.h"
-#include "../../res/bins.h"
 #include "TradeBot.h"
-#include <libpq-fe.h>
+#include "database.h"
+#include "../../res/bins.h"
 
+#include <libpq-fe.h>
 #include <vector>
 #include <iostream>
 

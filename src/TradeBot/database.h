@@ -7,6 +7,9 @@ namespace tb
 {
 	namespace db
 	{
+		/** \brief Initializes a postgres database with the tables and information required by TradeBot
+		* \param tradebot tradebot
+		*/
 		void
 		initialize_db(
 			tb::TradeBot& tradebot

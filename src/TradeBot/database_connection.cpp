@@ -376,3 +376,101 @@ tb::db::PostgresConnectionGuard::get_connection()
 	return connection;
 }
 
+
+void
+tb::db::PostgresTransactionManager::initialize_transaction()
+{
+	connection->reset();
+	auto result = PQexec((*connection)(), "BEGIN");
+
+	if (result == nullptr)
+	{
+		if (tb::TradeBot::get_cmdline_arg("verbose") == "true")
+		{
+			fprintf(
+				stderr,
+				"%s:%d: failed to allocate result for Postgres\n",
+				__FILE__,
+				__LINE__
+			);
+		}
+
+		throw std::bad_alloc();
+	}
+
+	if (PQresultStatus(result) != PGRES_COMMAND_OK)
+	{
+		if (tb::TradeBot::get_cmdline_arg("verbose") == "true")
+		{
+			fprintf(stderr,
+				"%s:%d: Error beginning Postgres transaction\n\t%s\b",
+				__FILE__,
+				__LINE__,
+				PQerrorMessage((*connection)())
+			);
+		}
+
+		PQclear(result);
+		connection->reset();
+		throw std::exception();
+	}
+}
+
+
+void
+tb::db::PostgresTransactionManager::complete_transaction()
+{
+	auto result = PQexec((*connection)(), "END");
+
+	if (result == nullptr)
+	{
+		if (tb::TradeBot::get_cmdline_arg("verbose") == "true")
+		{
+			fprintf(
+				stderr,
+				"%s:%d: failed to allocate result for Postgres\n",
+				__FILE__,
+				__LINE__
+			);
+		}
+
+		throw std::bad_alloc();
+	}
+
+	if (PQresultStatus(result) != PGRES_COMMAND_OK)
+	{
+		if (tb::TradeBot::get_cmdline_arg("verbose") == "true")
+		{
+			fprintf(stderr,
+				"%s:%d: Error beginning Postgres transaction\n\t%s\b",
+				__FILE__,
+				__LINE__,
+				PQerrorMessage((*connection)())
+			);
+		}
+
+		PQclear(result);
+		connection->reset();
+		throw std::exception();
+	}
+}
+
+
+tb::db::PostgresTransactionManager::PostgresTransactionManager(
+	tb::db::PostgresConnectionGuard& conn
+) :
+	connection(conn.get_connection())
+{
+	initialize_transaction();
+}
+
+tb::db::PostgresTransactionManager::PostgresTransactionManager(
+	tb::db::PostgresConnection& conn
+) :
+	connection(&conn)
+{
+}
+
+tb::db::PostgresTransactionManager::~PostgresTransactionManager()
+{
+}

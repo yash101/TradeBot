@@ -1,10 +1,26 @@
 #ifndef _DATABASE_H
 #define _DATABASE_H
 
+namespace tb
+{
+	namespace db
+	{
+		class PostgresConnection;
+		class PostgresConnectionPool;
+		class PostgresConnectionGuard;
+		class PostgresTransactionManager;
+	}
+}
+
+#include "TradeBot.h"
+
 #include <libpq-fe.h>
 #include <list>
 
 #include <mutex>
+
+#define HANDLE_DB_MSG(result, connection, tradebot) \\
+	tb::db::handle_error(result, conn, tradebot, __FILE__, __LINE__)
 
 namespace tb
 {
@@ -150,7 +166,7 @@ namespace tb
 			allowExtraAllocations(
 				bool yes
 			);
-
+ 
 
 			/** \brief returns the target size of the pool
 			*/
@@ -261,12 +277,34 @@ namespace tb
 			get_connection();
 		};
 
-		/** \brief Initializes a postgres database with the tables and information required by TradeBot
-		* \param connection connects to a database we are initializing
-		*/
-		void
-		initialize_database(
-			PostgresConnection& connection
+
+		/** \brief Uses RAII to manage an SQL transaction
+		 */
+		class PostgresTransactionManager
+		{
+		private:
+
+			PostgresConnection* connection;
+
+			void initialize_transaction();
+			void complete_transaction();
+
+		public:
+
+			PostgresTransactionManager(PostgresConnectionGuard& conn);
+			PostgresTransactionManager(PostgresConnection& conn);
+
+			virtual ~PostgresTransactionManager();
+
+		};
+
+
+		bool handle_error(
+			void* result,
+			PostgresConnection& conn,
+			tb::TradeBot& tradebot,
+			const char* file,
+			int lineno
 		);
 
 	}
