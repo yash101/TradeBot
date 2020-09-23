@@ -7,6 +7,7 @@ namespace tb
 }
 
 #include <unordered_map>
+#include <libpq-fe.h>
 
 #include "database_connection.h"
 #include "webapi.h"
@@ -95,6 +96,20 @@ namespace tb
          */
         tb::db::PostgresConnectionPool&
         get_db_pool();
+
+
+        /** \brief true if verbose output
+         */
+        bool
+        get_debug_mode();
+
+
+        /** \brief sets whether to enable debug mode
+         * \param debug is true if verbose output is preferred; false if verbose output should be supressed.
+         */
+        void set_debug_mode(
+            bool debug
+        );
     };
 }
 

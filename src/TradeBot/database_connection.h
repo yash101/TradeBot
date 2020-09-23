@@ -12,15 +12,9 @@ namespace tb
 	}
 }
 
-#include "TradeBot.h"
-
 #include <libpq-fe.h>
 #include <list>
-
 #include <mutex>
-
-#define HANDLE_DB_MSG(result, connection, tradebot) \\
-	tb::db::handle_error(result, conn, tradebot, __FILE__, __LINE__)
 
 namespace tb
 {
@@ -285,9 +279,11 @@ namespace tb
 		private:
 
 			PostgresConnection* connection;
+			bool debug;
 
 			void initialize_transaction();
 			void complete_transaction();
+			void set_debug_mode(bool enable);
 
 		public:
 
@@ -297,15 +293,6 @@ namespace tb
 			virtual ~PostgresTransactionManager();
 
 		};
-
-
-		bool handle_error(
-			void* result,
-			PostgresConnection& conn,
-			tb::TradeBot& tradebot,
-			const char* file,
-			int lineno
-		);
 
 	}
 }

@@ -378,6 +378,15 @@ tb::db::PostgresConnectionGuard::get_connection()
 
 
 void
+tb::db::PostgresTransactionManager::set_debug_mode(
+	bool enable
+)
+{
+	debug = enable;
+}
+
+
+void
 tb::db::PostgresTransactionManager::initialize_transaction()
 {
 	connection->reset();
@@ -385,7 +394,7 @@ tb::db::PostgresTransactionManager::initialize_transaction()
 
 	if (result == nullptr)
 	{
-		if (tb::TradeBot::get_cmdline_arg("verbose") == "true")
+		if (debug)
 		{
 			fprintf(
 				stderr,
@@ -400,7 +409,7 @@ tb::db::PostgresTransactionManager::initialize_transaction()
 
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
 	{
-		if (tb::TradeBot::get_cmdline_arg("verbose") == "true")
+		if (debug)
 		{
 			fprintf(stderr,
 				"%s:%d: Error beginning Postgres transaction\n\t%s\b",
@@ -424,7 +433,7 @@ tb::db::PostgresTransactionManager::complete_transaction()
 
 	if (result == nullptr)
 	{
-		if (tb::TradeBot::get_cmdline_arg("verbose") == "true")
+		if (debug)
 		{
 			fprintf(
 				stderr,
@@ -439,7 +448,7 @@ tb::db::PostgresTransactionManager::complete_transaction()
 
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
 	{
-		if (tb::TradeBot::get_cmdline_arg("verbose") == "true")
+		if (debug)
 		{
 			fprintf(stderr,
 				"%s:%d: Error beginning Postgres transaction\n\t%s\b",
@@ -459,7 +468,8 @@ tb::db::PostgresTransactionManager::complete_transaction()
 tb::db::PostgresTransactionManager::PostgresTransactionManager(
 	tb::db::PostgresConnectionGuard& conn
 ) :
-	connection(conn.get_connection())
+	connection(conn.get_connection()),
+	debug(false)
 {
 	initialize_transaction();
 }
@@ -467,7 +477,8 @@ tb::db::PostgresTransactionManager::PostgresTransactionManager(
 tb::db::PostgresTransactionManager::PostgresTransactionManager(
 	tb::db::PostgresConnection& conn
 ) :
-	connection(&conn)
+	connection(&conn),
+	debug(false)
 {
 }
 
