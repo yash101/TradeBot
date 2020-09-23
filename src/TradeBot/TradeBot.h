@@ -23,6 +23,7 @@ namespace tb
         std::unordered_map<std::string, std::string> cmdline_args;
         tb::db::PostgresConnectionPool db_connection_pool;
         tb::WebAPI api;
+        bool debug;
 
         bool
         print_help();

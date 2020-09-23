@@ -43,6 +43,8 @@ tb::TradeBot::initialize(
 )
 {
     process_args(argc, argv);
+    set_debug_mode(get_cmdline_arg("verbose") == "true");
+
     if (print_help()) return 0;
     if (startup_db()) return 1;
     if (startup_webapi()) return 1;
@@ -183,4 +185,20 @@ tb::db::PostgresConnectionPool&
 tb::TradeBot::get_db_pool()
 {
     return db_connection_pool;
+}
+
+
+bool
+tb::TradeBot::get_debug_mode()
+{
+    return debug;
+}
+
+
+void
+tb::TradeBot::set_debug_mode(
+    bool enable
+)
+{
+    debug = enable;
 }
