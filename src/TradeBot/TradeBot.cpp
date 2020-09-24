@@ -129,6 +129,27 @@ tb::TradeBot::startup_db()
 }
 
 
+static bool set_cfg_if_chg(
+    std::string conf,
+    std::string val,
+    tb::db::PostgresConnectionGuard& connection
+)
+{
+    const char* conf_str[1] = { conf.c_str() };
+    const char* val_str[1] = { val.c_str() };
+    PGresult* result = PQexecParams(
+        connection(),
+        "SELECT * FROM configuration cfg WHERE cfg.opt = $1::TEXT LIMIT 1;",
+        1,
+        NULL,
+        conf_str,
+        NULL,
+        NULL,
+        0
+    );
+}
+
+
 bool
 tb::TradeBot::startup_webapi()
 {
@@ -143,7 +164,7 @@ tb::TradeBot::startup_webapi()
 
         PGresult* result = nullptr;
 
-        result = PQexec(conn, "SELECT ");
+        result = PQexec(connection(), "SELECT * FROM configuration cfg WHERE cfg.opt = 'webapi.listenaddr' OR cfg.opt = 'webapi.listenport' OR cfg.opt = 'webapi.baseurl';");
     }
 }
 
