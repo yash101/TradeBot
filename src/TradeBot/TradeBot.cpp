@@ -138,28 +138,12 @@ tb::TradeBot::startup_webapi()
     std::string webapi_baseurl = get_cmdline_arg("configure.webapi.baseurl");
 
     tb::db::PostgresConnectionGuard connection(get_db_pool());
-    bool debug = get_cmdline_arg("verbose") == "true";
-    
-    auto result = PQexec(connection(), "BEGIN");
-    if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
-        if (debug)
-            fprintf(stderr, "%s:%d: Error beginning Postgres transaction:\n\t%s\n", __FILE__, __LINE__, PQerrorMessage(connection()));
-        
-        PQclear(result);
-        connection.get_connection()->reset();
-        return false;
-    }
-    
-    result = PQexec(connection(), "END");
-    if (PQresultStatus(result) != PGRES_COMMAND_OK)
-    {
-        if (debug)
-            fprintf(stderr, "%s:%d: Error ending Postgres transaction:\n\t%s\n", __FILE__, __LINE__, PQerrorMessage(connection()));
-        
-        PQclear(result);
-        connection.get_connection()->reset();
-        return false;
+        tb::db::PostgresTransactionManager manager(connection);
+
+        PGresult* result = nullptr;
+
+        result = PQexec(conn, "SELECT ");
     }
 }
 
