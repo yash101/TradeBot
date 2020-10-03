@@ -1,4 +1,5 @@
-module.exports = {
-    mongo_url: '127.0.0.1',
-    mongo_port: 27017
+const Config = {
+    mongo_url: 'mongodb://localhost:27017/tradebot-db',
 };
+
+module.exports = Config;
