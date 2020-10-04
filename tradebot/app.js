@@ -6,22 +6,30 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-
-const mongoose = require('mongoose');
 const config = require('./config');
+
+const passport = require('passport');
+const mongoose = require('mongoose');
+const expressSession = require('express-session');
 
 var app = express();
 
+mongoose.Promise = global.Promise;
 mongoose.connect(
   config.mongo_url, {
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
-.then(() => console.log('connected to mongodb database.'));
+.then(() => console.log('connected to mongodb database.'))
+.catch(err => console.error(err));
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.use(expressSession({
+  secret: process.env.SESSION_SECRET || 'test secret',
+  resave: false,
+  saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use(logger('dev'));
 app.use(express.json());
