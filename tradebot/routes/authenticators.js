@@ -9,6 +9,10 @@ passport.use(new GoogleAuthenticationStrategy({
   clientSecret: AUTH_GOOGLE_CLIENT_SECRET,
   callbackURL: AUTH_GOOGLE_CBURL
 }, (accessToken, refreshToken, profile, cb) => {
+  User.findOne({ googleId: profile.id }, (err, person) => {
+    
+  });
+
   User.findOrCreate({ googleId: profile.id }, (err, user) => {
     return cb(err, user);
   });
@@ -16,7 +20,11 @@ passport.use(new GoogleAuthenticationStrategy({
 
 let router = express.Router();
 
-router.get('/authenticators/google')
+router.get('/authenticators/google', passport.authenticate('google', { scope: ['profile'] }));
+
+router.get('/authenticators/google/cb', passport.authenticate('google', { failureRedirect: '' }), (req, res => {
+  res.send({success: true, message: 'authentication successful'});
+}));
 
 router.get('/authenticated', (req, res) => {
 });
