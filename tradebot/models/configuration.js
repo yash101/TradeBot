@@ -19,14 +19,22 @@ const configSchema = new mongoose.Schema(
 );
 
 configSchema.statics.get = async function(key, def_value) {
-    let user = await this.findOne({
+    let conf = await this.findOne({
         key: key
     });
 
-    if (!user) {
-        this.insertOne(def_value);
-        return def_value;
+    if (!conf) {
+        let ins = {
+            key: key,
+            value: def_value
+        };
+
+        this.insertOne(ins);
+
+        return ins;
     }
+
+    return conf;
 };
 
 configSchema.statics.update = async function(key, value) {
