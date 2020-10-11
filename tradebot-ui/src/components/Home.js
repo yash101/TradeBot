@@ -1,9 +1,17 @@
 import React from 'react';
 
+import PageLayout from './PageLayout';
+
 function Home() {
-    return (
-        <h1>Home!</h1>
-    )
+  return (
+    <PageLayout
+      pageTitle='Home'
+      selectedMenuItem='home'
+      breadcrumbs={['home']}
+    >
+      <h1>Welcome home!</h1>
+    </PageLayout>      
+  )
 }
 
 export default Home;
