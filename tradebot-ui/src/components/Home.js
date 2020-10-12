@@ -1,6 +1,10 @@
 import React from 'react';
 
+import { ApiBase } from '../apiconf';
 import PageLayout from './PageLayout';
+
+function getAccounts() {
+}
 
 function Home() {
   return (
@@ -8,8 +12,7 @@ function Home() {
       pageTitle='Home'
       selectedMenuItem='home'
       breadcrumbs={['home']}
-    >
-      <h1>Welcome home!</h1>
+    >    
     </PageLayout>      
   )
 }

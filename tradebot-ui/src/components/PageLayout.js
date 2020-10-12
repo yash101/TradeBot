@@ -5,7 +5,7 @@ import { NavLink } from 'react-router-dom';
 
 import TBLogo from './TBLogo';
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Content, Footer, Sider } = Layout;
 const { Title } = Typography;
 
 function PageLayout(props) {
@@ -36,13 +36,11 @@ function PageLayout(props) {
         <Title className='site-layout-background' style={{ padding: '24px' }}>{props.pageTitle}</Title>
         <Content style={{ marginLeft: '24px' }}>
           <Breadcrumb style={{ paddingRight: '0'}}>
-            {breadcrumbs.map(itm => (
-              <Breadcrumb.Item>{itm}</Breadcrumb.Item>
-            ))}
+            {breadcrumbs.map(itm => (<Breadcrumb.Item>{itm}</Breadcrumb.Item>))}
           </Breadcrumb>
         </Content>
         <Content style={{ margin: '24px 16px 0', overflow: 'initial' }}>
-          <div className='site-layout-background' style={{ padding: 24, textAlign: 'center' }}>
+          <div className='site-layout-background' style={{ padding: 24 }}>
             <div>{props.children}</div>
           </div>
         </Content>
