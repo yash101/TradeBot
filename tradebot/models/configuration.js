@@ -48,4 +48,4 @@ configSchema.statics.update = async function(key, value) {
 
 const Configuration = mongoose.model('Configuration', configSchema);
 
-export default Configuration;
+module.exports = Configuration;
