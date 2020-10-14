@@ -1,32 +1,45 @@
+require('dotenv').config();
+
 const express = require('express');
 const passport = require('passport');
+
 const User = require('../models/user');
 
-const GoogleAuthenticationStrategy = require('passport-google-oauth20').Strategy;
-const dotenv = require('dotenv');
-dotenv.config();
-
-passport.use(new GoogleAuthenticationStrategy({
-  clientID: process.env.AUTH_GOOGLE_CLIENT_ID || '',
-  clientSecret: process.env.AUTH_GOOGLE_CLIENT_SECRET || '',
-  callbackURL: process.env.AUTH_GOOGLE_CBURL || ''
-}, (accessToken, refreshToken, profile, cb) => {
-  User.findOne({ googleId: profile.id }, (err, person) => {
-    
-  });
-
-  User.findOrCreate({ googleId: profile.id }, (err, user) => {
-    return cb(err, user);
-  });
-}));
+const FacebookStrategy = require('passport-facebook').Strategy;
 
 let router = express.Router();
 
-//router.get('/authenticators/google', passport.authenticate('google', { scope: ['profile'] }));
-
-router.get('/authenticators/google/cb', passport.authenticate('google', { failureRedirect: '' }), (req, res) => {
-  res.send({success: true, message: 'authentication successful'});
+passport.serializeUser((user, done) => {
+  done(null, user);
 });
+
+passport.deserializeUser((obj, done) => {
+  done(null, user);
+});
+
+passport.use(new FacebookStrategy(
+  {
+    clientID: process.env.AUTH_FACEBOOK_CLIENT_ID,
+    clientSecret: process.env.AUTH_FACEBOOK_CLIENT_SECRET,
+    callbackURL: process.env.AUTH_FACEBOOK_CALLBACK_URL,
+    profileFields: ['email', 'name']
+  },
+  (accessToken, refreshToken, profile, done) => {
+    const { email, first_name, last_name } = profile._json;
+  }
+));
+
+router.get('/authenticators/google', passport.authenticate('google'));
+router.get(
+  '/authenticators/google/cb',
+  passport.authenticate(
+    'google',
+    { failureRedirect: '/authentication/authenticators/google', session: false },
+    (req, res) => {
+      console.log('successfully authenticated user: ', req.user);
+      res.json(req.user);
+    }
+  ));
 
 router.get('/authenticated', (req, res) => {
 });
