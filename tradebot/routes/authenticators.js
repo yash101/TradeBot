@@ -26,20 +26,19 @@ passport.use(new FacebookStrategy(
   },
   (accessToken, refreshToken, profile, done) => {
     const { email, first_name, last_name } = profile._json;
+    console.log(profile._json);
   }
 ));
 
-router.get('/authenticators/google', passport.authenticate('google'));
+router.get('/authenticators/facebook', passport.authenticate('facebook'));
+
 router.get(
-  '/authenticators/google/cb',
-  passport.authenticate(
-    'google',
-    { failureRedirect: '/authentication/authenticators/google', session: false },
-    (req, res) => {
-      console.log('successfully authenticated user: ', req.user);
-      res.json(req.user);
-    }
-  ));
+  '/authenticators/facebook/cb',
+  passport.authenticate('facebook', {
+    successRedirect: '/authentication/authenticated',
+    failureRedirect: '/authentication/authenticated'
+  })
+);
 
 router.get('/authenticated', (req, res) => {
 });

@@ -16,6 +16,6 @@
     "mongoose": "^5.10.7",
     "morgan": "~1.9.1",
     "passport": "^0.4.1",
-    "passport-facebook": "^3.0.0",
+    "passport-facebook": "^3.0.0"
   }
 }

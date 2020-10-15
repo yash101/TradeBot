@@ -27,7 +27,7 @@ mongoose.connect(
 .catch(err => console.error(err));
 
 app.use(expressSession({
-  secret: process.env.SESSION_SECRET || 'test secret',
+  secret: process.env.AUTH_SESSION_SECRET || 'test secret',
   resave: false,
   saveUninitialized: false
 }));
@@ -41,7 +41,7 @@ app.use(cookieParser());
 // app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('authentication/', authRouter);
+app.use('/authentication/', authRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -56,7 +56,10 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.json({
+    status: false,
+    failure: err.message
+  })
 });
 
 module.exports = app;
