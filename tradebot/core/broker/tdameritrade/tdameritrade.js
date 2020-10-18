@@ -27,16 +27,21 @@ const TdAPI = function(consumerKey, refreshToken, refreshTokenExpiry) {
   this.refreshExpiry = null;
   this.accessTokenExpiry = null;
 
-  this.renewRefreshToken = async function() {
+  this.renewRefreshToken = async () => {
   };
 
-  this.renewAccessToken = async function() {
+  this.renewAccessToken = async () => {
   };
 
-  this.fetchAccounts = async function() {
+  this.fetchAccounts = async () => {
   };
 
-  this.getAccounts = () => this.accounts;
+  this.getAccounts = async () => this.accounts;
+};
+
+const TdDataAPI = function(tdapi) {
+  this.fundamentals = async (symbol) => {};
+  this.priceHistory = async (symbol, period, periodType, frequencyType) => {}
 };
 
 module.exports = { TdAPI: TdAPI, Account: Account };
