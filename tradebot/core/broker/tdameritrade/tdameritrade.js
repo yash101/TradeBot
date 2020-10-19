@@ -1,5 +1,6 @@
 const axios = require('axios');
 const urljoin = require('url-join');
+const { BrokerAPI, Account } = require('../common/broker');
 
 require('dotenv').config();
 
@@ -10,14 +11,14 @@ const tdurl = function(path) {
 
 const Account = function(tdameritrade, accountno) {
 
-  this.update = async function() {};
+  this.update = async () {};
 
-  this.getActiveOrders = async function() {};
-  this.createOrder = async function(order) {};
-  this.cancelOrder = async function(orderId) {};
-  this.replaceOrder = async function(orderId, newOrder) {};
+  this.getActiveOrders = async () => {};
+  this.createOrder = async (order) => {};
+  this.cancelOrder = async (orderId) => {};
+  this.replaceOrder = async (orderId, newOrder) => {};
 
-  this.accountInfo = function() {};
+  this.accountInfo = async () => {};
 };
 
 const TdAPI = function(consumerKey, refreshToken, refreshTokenExpiry) {
@@ -33,15 +34,12 @@ const TdAPI = function(consumerKey, refreshToken, refreshTokenExpiry) {
   this.renewAccessToken = async () => {
   };
 
-  this.fetchAccounts = async () => {
-  };
-
   this.getAccounts = async () => this.accounts;
 };
 
 const TdDataAPI = function(tdapi) {
   this.fundamentals = async (symbol) => {};
-  this.priceHistory = async (symbol, period, periodType, frequencyType) => {}
+  this.priceHistory = async (symbol, period, periodType, frequencyType) => {};
 };
 
-module.exports = { TdAPI: TdAPI, Account: Account };
+module.exports = { TdAPI, Account, TdDataAPI };
