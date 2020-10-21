@@ -1,12 +1,16 @@
+require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
+const Configuration = require('./configuration');
+
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 
-let [TdAPI, TdRouter] = require('./Providers/tdameritrade');
+const TdAmeritrade = require('./Sources/tdameritrade');
 
 const app = express();
 
@@ -18,6 +22,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/authenticators/tdameritrade', TdRouter);
+app.use('/authenticators/amtd', TdAmeritrade.Router);
 
 module.exports = app;

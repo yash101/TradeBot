@@ -1,4 +1,3 @@
-require('dotenv').config();
 const axios = require('axios').default;
 const qs = require('querystring');
 const express = require('express');
@@ -19,6 +18,7 @@ tdapi.supportedData = {
   ],
 };
 
+// todo: complete
 tdapi.renewAccessToken = async function() {
   this.authentication = this.authentication || {};
 
@@ -41,6 +41,7 @@ tdapi.renewAccessToken = async function() {
   return null;
 };
 
+// todo: complete
 tdapi.renewRefreshToken = async function() {
   this.authentication = this.authentication || {};
 
@@ -64,11 +65,14 @@ tdapi.renewRefreshToken = async function() {
   return null;
 };
 
+
 tdapi.initialize = async function(data, updateSaveDataCb) {
   this.internals = {
     consumerKey: data.consumerKey || process.env.DEFAULT_TDAPI_CONSUMERKEY || null,
     refreshToken: data.refreshToken || process.env.DEFAULT_TDAPI_REFRESHTOKEN || null,
     redirectUri: data.redirectUri || process.env.DEFAULT_TDAPI_REDIRECTURI || null,
+    refreshTokenExpiry: data.refreshTokenExpiry || 0,
+    accessTokenExpiry: data.accessTokenExpiry || 0,
     updateSaveDataCB: updateSaveDataCb || (async () => {}),
   };
 
@@ -96,7 +100,7 @@ tdapi.initialize = async function(data, updateSaveDataCb) {
   await this.renewRefreshToken();
 };
 
-tdapi.fetchOnce = function(type, symbol) {
+tdapi.fetchOnce = function(category, symbol, data) {
 };
 
 (() => {
@@ -112,11 +116,11 @@ tdapi.fetchOnce = function(type, symbol) {
       };
 
       const redir_data = qs.stringify(params);
-      return redirect(`https://auth.tdameritrade.com/auth?${redir_data}`);
+      return res.redirect(`https://auth.tdameritrade.com/auth?${redir_data}`);
     });
 
-    erouter.get('/cburl', (req, res) => {
-      const code = req.params['code'];
+    erouter.get('/cburl', async (req, res) => {
+      const code = req.query.code;
       if (!code) {
         res.json({status: 'failure', reason: 'invalid code was provided or code was missing in the request'}, 400);
       }
@@ -130,28 +134,51 @@ tdapi.fetchOnce = function(type, symbol) {
         redirect_uri: process.env.DEFAULT_TDAPI_REDIRECTURI,
       };
 
-      const apiResp = await axios.post(
-        'https://api.tdameritrade.com/v1/oauth/token',
-        qs.stringify(params)
-      );
+      const response = await axios({
+        method: 'post',
+        url: 'https://api.tdameritrade.com/v1/oauth2/token',
+        data: qs.stringify(params),
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded;charset=utf-8'
+        },
+        validateStatus: false,
+      });
 
-      const blob = JSON.parse(apiResp.data);
+      let blob = response.data;
 
-      if (apiResp.status === 200) {
+      const refTokenExp = new Date(Date.now());
+      refTokenExp.setSeconds(refTokenExp.getSeconds() + (blob.refresh_token_expires_in * 0.90));
+      const accTokenExp = new Date(Date.now());
+      accTokenExp.setSeconds(accTokenExp.getSeconds() + (blob.expires_in * 0.90))
+
+      if (response.status === 200) {
         res.send({
-          refreshToken: blob.refresh_token,
-          accessToken: blob.access_token,
-          accessTokenExpiresIn: blob.expires_in,
-          refreshTokenExpiresIn: blob.refreshTokenExpiresIn,
+          tdameritrade_configuration: {
+            consumerKey: process.env.DEFAULT_TDAPI_CONSUMERKEY,
+            refreshToken: blob.refresh_token,
+            accessToken: blob.access_token,
+            redirectUri: process.env.DEFAULT_TDAPI_REDIRECTURI,
+            refreshTokenExpiry: refTokenExp.getTime(),
+            accessTokenExpiry: accTokenExp.getTime(),
+          }
         }, 200);
       } else {
         res.send({
           status: 'failure',
           reason: 'failed to request authentication tokens',
-          errorCode: apiResp.status,
+          errorCode: response.status,
           receivedData: blob,
-          receivedHeaders: apiResp.headers
+          receivedHeaders: response.headers
         }, 406);
+
+        console.log('TD Ameritrade Configuration:', {
+          consumerKey: process.env.DEFAULT_TDAPI_CONSUMERKEY,
+          refreshToken: blob.refresh_token,
+          accessToken: blob.access_token,
+          redirectUri: process.env.DEFAULT_TDAPI_REDIRECTURI,
+          refreshTokenExpiry: refTokenExp.getTime(),
+          accessTokenExpiry: accTokenExp.getTime(),
+        });
       }
     });
   } else {
@@ -159,4 +186,4 @@ tdapi.fetchOnce = function(type, symbol) {
   }
 })();
 
-module.exports = { tdapi, erouter };
+module.exports = { API: tdapi, Router: erouter };
