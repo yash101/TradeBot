@@ -148,3 +148,5 @@ _deps.vs
 
 .vs/
 generated-docs/*
+
+config.json

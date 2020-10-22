@@ -9,7 +9,7 @@ const tdurl = function(path) {
   return urljoin(tdapi_baseurl, path);
 }
 
-const Account = function(tdameritrade, accountno) {
+const TdAccount = function(tdameritrade, accountno) {
 
   this.update = async () {};
 
