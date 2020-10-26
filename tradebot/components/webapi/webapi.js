@@ -10,6 +10,7 @@ const cors = require('cors');
 
 const config = require('../configuration/configuration');
 const indexRouter = require('./index');
+const apiAuth = require('./apiauth');
 
 module.exports = (async () => {
   let app = express();
@@ -29,6 +30,7 @@ module.exports = (async () => {
 //  app.use(express.static(path.join(__dirname, 'public')));
 
   app.use('/', indexRouter);
+  app.use('/authentication', apiAuth.router);
 
 
   // set up the server
