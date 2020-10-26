@@ -1,29 +1,43 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const express = require('express');
 
 const db = require('../database/postgres');
 
-module(async () => {
+let dbconn = (async () => {
   // create database tables
   let connection = await db.connect();
 
+  // auth data: each auth data links to a user
   await db.query(`
-    CREATE TABLE IF NOT EXISTS "keybase" (
-      client_id SERIAL        PRIMARY KEY   GENERATED ALWAYS AS IDENTITY,
-      user_id   INT,
-      secret    TEXT                        NOT NULL,
-      salt      TEXT                        NOT NULL,
+    CREATE TABLE IF NOT EXISTS "auth" (
+      username    TEXT    PRIMARY KEY   NOT NULL,
+      secret      TEXT                  NOT NULL,
+      parent_id   BIGINT
     );
   `);
 
   await db.query(`
     CREATE TABLE IF NOT EXISTS "user" (
-      user_id   SERIAL        PRIMARY KEY   GENERATED ALWAYS AS IDENTITY,
-      client_id INT           UNIQUE,  
-      email     TEXT          UNIQUE,
+      userid      BIGSERIAL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+      username    TEXT                  NOT NULL,
+      email       TEXT                  NOT NULL,
+    );
+  `);
+
+  /**
+   * client_id is the "username"
+   */
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS "authentication" (
+      user_id     SERIAL        PRIMARY KEY   GENERATED ALWAYS AS IDENTITY,
+      client_id   TEXT          UNIQUE        NOT NULL,
+      parent_clid TEXT                        DEFAULT NULL,
       CONSTRAINT fk_cliid FOREIGN KEY (client_id) REFERENCES keybase(client_id)
     );
   `);
+
+  
 
   const findUser = async () => {
   };
@@ -37,5 +51,16 @@ module(async () => {
   });
   
   passport.deserializeUser((user, done) => {
+  });
+
+  connection.release();
+
+  return null;
+})();
+
+let router = (async () => {
+  let authRouter = express.Router();
+
+  authRouter.post('/signup', (req, res, next) => {
   });
 })();

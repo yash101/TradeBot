@@ -3,9 +3,10 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const expressSession = require('express-session');
 const debug = require('debug')('tradebot:webapi');
-
 const logger = require('morgan');
 const http = require('http');
+const passport = require('passport');
+const cors = require('cors');
 
 const config = require('../configuration/configuration');
 const indexRouter = require('./index');
@@ -14,6 +15,7 @@ module.exports = (async () => {
   let app = express();
 
   app.use(logger('dev'));
+  app.use(cors());
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(expressSession({
@@ -21,6 +23,8 @@ module.exports = (async () => {
     resave: false,
     saveUninitialized: false,
   }));
+  app.use(passport.initialize());
+  app.use(passport.session());
   app.use(cookieParser());
 //  app.use(express.static(path.join(__dirname, 'public')));
 
