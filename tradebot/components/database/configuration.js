@@ -63,5 +63,6 @@ class Configuration {
   }
 }
 
-module.exports = new Configuration();
+const configuration = new Configuration();
 
+module.exports = configuration;
