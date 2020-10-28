@@ -1,5 +1,7 @@
 const db = require('./postgres');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const passport = require('passport');
 
 // sets up the database
 let dbconn = (async () => {
@@ -70,7 +72,64 @@ class User {
   setAuthKeys(keys) { self.authkeys = keys; return this; }
 
   async flush() {
-    return User.updateUser(this.getUserId(), this);
+    await User.updateUser(this.getUserId(), this);
+    return this;
+  }
+
+  async fetchAuthKeys() {
+    const query = await db.query('SELECT * FROM "auth" a WHERE a.parentid = $1', [this.getUserId()]);
+    this.authkeys = query.rows;
+
+    return this;
+  }
+
+  async newUserAuthKey(password) {
+    // generate random salt
+    const salt = crypto.randomBytes(password.length / 2).toString('hex');
+    const pw = await bcrypt.hash(secret, salt);
+
+    const query = await db.query(`
+      INSERT INTO "auth"
+        (clientid, secret, salt, parentid, last_login)
+        VALUES ($1, $2, $3, $4, NULL);
+    `, [this.getUsername(),  pw, salt, this.getUserId()]);
+  }
+
+  async newInfrastructureAuthKey() {
+    // generate new clientid, client secret and salt
+    const clientid = crypto.randomBytes(128).toString('base64');
+    const secret = crypto.randomBytes(128).toString('base64');
+    const salt = crypto.randomBytes(128).toString('base64');
+    const salted_secret = await bcrypt.hash(secret, salt);
+
+    const query = await db.query(`
+      INSERT INTO "auth"
+        (clientid, secret, salt, parentid, last_login)
+        VALUES ($1, $2, $3, $4, null);
+    `, [clientid, salted_secret, salt, this.getUserId()]);
+
+    return {
+      clientid: clientid,
+      secret: secret,
+      salt: salt,
+      hashed: salted_secret,
+      parentid: this.getUserId(),
+    };
+  }
+
+  async deleteAuthKey(clientid) {
+    await db.query('DELETE FROM "auth" WHERE clientid = $1', [clientid]);
+    return this;
+  }
+
+  async updateSecret(clientid, secret) {
+    const cli = clientid || this.getUserId();
+    const salt = crypto.randomBytes(secret.length * 2 / 3).toString('hex');
+    const hashed = bcrypt.hash(secret, salt);
+
+    await db.query('UPDATE "auth" SET secret = $1, salt = $2 WHERE clientid = $3', [hashed, salt, cli]);
+
+    return this;
   }
 
   /** Authenticates using a client_id and a secret
