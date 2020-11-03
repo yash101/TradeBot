@@ -1,68 +1,72 @@
-const pool = require('../database/postgres');
+const pool = require('./postgres');
 
 class Configuration {
   constructor() {
-    (async () => {
-      pool.query(`
+    this.ready = (async () => {
+      return pool.query(`
         CREATE TABLE IF NOT EXISTS "configuration" (
-          name          TEXT        NOT NULL  PRIMARY KEY,
-          val           TEXT,
-          last_updated  TIMESTAMPTZ NOT NULL  DEFAULT current_timestamp
+          name      TEXT    NOT NULL    PRIMARY KEY,
+          val       TEXT,
+          updated   TIMESTAMPTZ         NOT NULL      DEFAULT current_timestamp
         );
+
+        CREATE OR REPLACE FUNCTION configuration_timestamp_update() RETURNS TRIGGER AS $configuration_timestamp_update$
+          BEGIN
+            NEW.updated = NOW();
+            RETURN NEW;
+          END;
+        $configuration_timestamp_update$ LANGUAGE plpgsql;
+
+        DO
+        $$
+        BEGIN
+          IF NOT EXISTS (SELECT * FROM information_schema.triggers
+            WHERE event_object_table = 'configuration'
+              AND trigger_name = 'configuration_timestamp_update')
+            THEN CREATE TRIGGER configuration_timestamp_update BEFORE INSERT OR UPDATE ON "configuration"
+              FOR EACH ROW EXECUTE PROCEDURE configuration_timestamp_update();
+          END IF;
+        END;
+        $$
       `).catch(err => {
-        console.error(err);
-        process.exit(1);
+        console.error('Unable to create the configuration table in the aux database: ', err);
+        process.exit(-1);
       });
     })();
   }
 
   async get(name, initial) {
-    const query = await pool.query(
-      'SELECT cfg.name, cfg.val, cfg.last_updated FROM "configuration" cfg WHERE cfg.name = $1;',
-      [name]
-    );
+    const query = await pool.query('SELECT * FROM "configuration" cfg WHERE cfg.name = $1;', [name]);
 
-    // set to default if it wasn't found
-    if (query.rows.length < 1 && initial) {
+    if (query.rowCount < 1 && !initial) {
+      return null;
+    } else if(query.rowCount < 1) {
       await this.set(name, initial);
       return await this.get(name, null);
-    } else if (query.rows.length < 1) {  // not found, no backup option
-      return null;
     }
 
-    return {
-      name: query.rows[0].name,
-      value: query.rows[0].val,
-      timestamp: query.rows[0].last_updated,
-    };
+    return query.rows[0];
   }
 
   async set(name, value) {
-    return pool.query(`
-      INSERT INTO "configuration" (name, val, last_updated)
+    await pool.query(`
+      INSERT INTO "configuration" (name, val, updated)
         VALUES ($1, $2, NOW())
         ON CONFLICT (name) DO UPDATE
-          SET val = $2, last_updated = NOW()
-          WHERE "configuration".val <> $2;
+          SET val = $2, updated = NOW()
+          WHERE "configuration".val <> $2
     `, [name, value || null]);
   }
 
   async getAll() {
-    const res = await connection.query(`SELECT * FROM "configuration";`);
-    let ret = {};
-    
-    res.rows.forEach(row => {
-      ret[row.name] = {
-        name: row.name,
-        value: row.val,
-        timestamp: row.last_updated,
-      };
+    const query = await pool.query('SELECT * FROM "configuration";');
+    let map = {};
+    query.rows.forEach(item => {
+      map[item.name] = item;
     });
 
-    return ret;
+    return map;
   }
 }
 
-const configuration = new Configuration();
-
-module.exports = configuration;
+module.exports = new Configuration();
