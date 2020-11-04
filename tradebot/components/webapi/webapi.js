@@ -7,12 +7,15 @@ const logger = require('morgan');
 const http = require('http');
 const passport = require('passport');
 const cors = require('cors');
+const crypto = require('crypto');
 
 const config = require('../configuration/configuration');
 const indexRouter = require('./index');
 const apiAuth = require('./apiauth');
 
 module.exports = (async () => {
+  await config.ready;
+
   let app = express();
 
   app.use(logger('dev'));
@@ -20,7 +23,7 @@ module.exports = (async () => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(expressSession({
-    secret: await config.get('session.secret', process.env.DEFAULT_SESSION_SECRET || 'secret'),
+    secret: (await config.get('session.secret', crypto.randomBytes(128).toString('base64'))).val,
     resave: false,
     saveUninitialized: false,
   }));
@@ -31,7 +34,6 @@ module.exports = (async () => {
 
   app.use('/', indexRouter);
   app.use('/authentication', apiAuth.router);
-
 
   // set up the server
   const onError = (error) => {
@@ -67,9 +69,11 @@ module.exports = (async () => {
     console.info('Listening on ' + bind);
   };
 
-  const port = parseInt(await config.get('webapi.port') || process.env.WEBAPI_PORT || '3000');
-  app.set('port', port);
+  const port = parseInt((
+    await config.get('webapi.port', process.env.WEBAPI_PORT || '3000')
+  ).val);
 
+  app.set('port', port);
   const server = http.createServer(app);
   server.listen(port);
   server.on('error', onError);

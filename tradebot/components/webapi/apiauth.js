@@ -3,7 +3,41 @@ const LocalStrategy = require('passport-local').Strategy;
 const express = require('express');
 
 const db = require('../database/postgres');
+const User = require('../database/users');
 
+passport.serializeUser((auth, done) => {
+  done(null, auth.keyid);
+});
+
+passport.deserializeUser((keyid, done) => {
+  User.findUserByKeyId(keyid)
+  .then(res => {
+    if (!res.status) {
+      done(res.status, null);
+    } else {
+      done(null, res.data);
+    }
+  })
+  .catch(err => {
+    done(err, null);
+  });
+});
+
+passport.use(new LocalStrategy(
+  {},
+  (clientid, secret, done) => {
+    // check if the auth key exists
+    User.authenticate(clientid, secret)
+    .then(data => {
+      if (data.status) {
+        return done(null, data.data);
+      } else {
+        return done(data.reason, null);
+      }
+    })
+    .catch(err => { return done(err); })
+  }
+))
 
 class User {
   constructor() {
@@ -16,7 +50,7 @@ class User {
 
 let router = express.Router();
 
-router.post('/signup', (req, res, next) => {
+router.post('/register', async (req, res, next) => {
 });
 
 module.exports = { router, authenticate };

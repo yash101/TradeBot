@@ -3,6 +3,7 @@ const pool = require('./postgres');
 class Configuration {
   constructor() {
     this.ready = (async () => {
+      // initialize the table
       return pool.query(`
         CREATE TABLE IF NOT EXISTS "configuration" (
           name      TEXT    NOT NULL    PRIMARY KEY,
