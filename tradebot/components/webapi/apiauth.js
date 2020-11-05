@@ -39,18 +39,23 @@ passport.use(new LocalStrategy(
   }
 ))
 
-class User {
-  constructor() {
-    this.userid = null;
-    this.username = null;
-    this.email = null;
-    this.authKeys = null;
-  }
-};
-
 let router = express.Router();
 
 router.post('/register', async (req, res, next) => {
+  try {
+    const ret = User.newUser({
+      username: req.body.username,
+      email: req.body.email,
+      role: 'user',
+      fname: req.body.fname || null,
+      lname: req.body.lname || null,
+      password: req.body.password,
+    });
+
+    res.json(ret, ret.status ? 200 : 400);
+  } catch(err) {
+    res.send(err.message);
+  }
 });
 
-module.exports = { router, authenticate };
+module.exports = { router };

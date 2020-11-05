@@ -23,3 +23,4 @@
 
 - `session.secret`: the secret used to sign the sessions. This is automatically generated the first time TradeBot is started and configuration is generally not necessary
 - `webapi.port`: the port on which the webapi for TradeBot listens for HTTP requests
+

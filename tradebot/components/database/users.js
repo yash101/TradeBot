@@ -7,8 +7,8 @@ class User {
     this.ready = (async () => {
       return db.query(`
         --- userid, username, email, name, role created
-        CREATE TABLE "user" (
-          id        BIGINT      GENERATED ALWAYS AS IDENTITY,
+        CREATE TABLE IF NOT EXISTS "user" (
+          id        BIGINT      GENERATED ALWAYS AS IDENTITY  UNIQUE,
           username  TEXT        NOT NULL,
           email     TEXT,
           fname     TEXT,
@@ -17,7 +17,7 @@ class User {
           created   TIMESTAMPTZ NOT NULL  DEFAULT current_timestamp
         );
 
-        CREATE TABLE "auth_keys" (
+        CREATE TABLE IF NOT EXISTS "auth_keys" (
           keyid     BIGINT      GENERATED ALWAYS AS IDENTITY,
           parentid  BIGINT      NOT NULL,
           clientid  TEXT        NOT NULL  UNIQUE,
@@ -25,7 +25,9 @@ class User {
           created   TIMESTAMPTZ NOT NULL  DEFAULT current_timestamp,
           lastlogin TIMESTAMPTZ           DEFAULT NULL,
 
-          CONSTRAINT fk_parentid  FOREIGN KEY clientid REFERENCES user(id)
+          CONSTRAINT fk_parentid
+            FOREIGN KEY(parentid)
+            REFERENCES "user"(id)
         );
       `).catch(err => {
         console.error(err);
@@ -253,7 +255,9 @@ class User {
           UPDATE "user" SET lname = $4 WHERE id = $1 AND $4 IS NOT NULL;
           SELECT * FROM "user" WHERE id = $1;
         COMMIT;
-      `);
+      `, [row.id, data.role || 'user', data.fname || '', data.lname || '']);
+
+      // create auth entry for the user
 
       return (q2.rowCount !== 0) ?
         { status: true, data: q2.rows[0], } :

@@ -9,7 +9,7 @@ const passport = require('passport');
 const cors = require('cors');
 const crypto = require('crypto');
 
-const config = require('../configuration/configuration');
+const config = require('../database/configuration');
 const indexRouter = require('./index');
 const apiAuth = require('./apiauth');
 
@@ -23,7 +23,7 @@ module.exports = (async () => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(expressSession({
-    secret: (await config.get('session.secret', crypto.randomBytes(128).toString('base64'))).val,
+    secret: (await config.get('session.secret', crypto.randomBytes(64).toString('base64'))).val,
     resave: false,
     saveUninitialized: false,
   }));
