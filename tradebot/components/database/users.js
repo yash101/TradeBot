@@ -1,7 +1,6 @@
 const db = require('./postgres');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const { catch, catch, catch, catch, catch } = require('../webapi/webapi');
 
 class User {
   constructor() {
