@@ -43,7 +43,14 @@ let router = express.Router();
 
 router.post('/register', async (req, res, next) => {
   try {
-    const ret = User.newUser({
+    if (!req.body.password || !req.body.username || !req.body.email) {
+      res.status(400).json({
+        status: 'failure',
+        reason: 'password or username or email was not provided',
+      });
+    }
+
+    const ret = await User.newUser({
       username: req.body.username,
       email: req.body.email,
       role: 'user',
@@ -52,10 +59,41 @@ router.post('/register', async (req, res, next) => {
       password: req.body.password,
     });
 
-    res.json(ret, ret.status ? 200 : 400);
+    if (!ret.status && ret.error)
+      console.error(ret.error);
+    res.status(ret.status ? 200 : 400).json(ret);
   } catch(err) {
     res.send(err.message);
   }
 });
 
 module.exports = { router };
+
+// create an admin user
+(async () => {
+  await User.ready;
+  const u = await User.findUser({ username: 'admin' });
+  if (!u.data || u.data.length === 0) {
+    const createUser = await User.newUser({
+      username: 'admin',
+      password: 'admin',
+      fname: 'admin',
+      lname: 'admin',
+      role: 'admin',
+      email: 'tradebot-admin@localhost',
+    });
+
+    if (!createUser.status) {
+      console.error('Failed to create default administrator user');
+      console.error('Reason: ', createUser.reason);
+      if (createUser.error)
+        console.error(createUser.error);
+      process.exit(-1);
+    }
+
+    console.info('Default administrative user was created: ', {
+      username: 'admin',
+      password: 'admin'
+    });
+  }
+})();

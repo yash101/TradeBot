@@ -9,8 +9,8 @@ class User {
         --- userid, username, email, name, role created
         CREATE TABLE IF NOT EXISTS "user" (
           id        BIGINT      GENERATED ALWAYS AS IDENTITY  UNIQUE,
-          username  TEXT        NOT NULL,
-          email     TEXT,
+          username  TEXT        NOT NULL  UNIQUE,
+          email     TEXT        NOT NULL  UNIQUE,
           fname     TEXT,
           lname     TEXT,
           role      TEXT,
@@ -21,14 +21,85 @@ class User {
           keyid     BIGINT      GENERATED ALWAYS AS IDENTITY,
           parentid  BIGINT      NOT NULL,
           clientid  TEXT        NOT NULL  UNIQUE,
-          secret    TEXT,
+          secret    TEXT        NOT NULL,
           created   TIMESTAMPTZ NOT NULL  DEFAULT current_timestamp,
           lastlogin TIMESTAMPTZ           DEFAULT NULL,
+          disabled  BOOLEAN     NOT NULL  DEFAULT FALSE,    --- currently not used
 
           CONSTRAINT fk_parentid
             FOREIGN KEY(parentid)
             REFERENCES "user"(id)
         );
+
+        --- USERNAME, EMAIL, ROLE, FNAME, LNAME
+        CREATE OR REPLACE FUNCTION user_create_user (username TEXT, email TEXT, role TEXT, fname TEXT, lname TEXT, password TEXT) RETURNS SETOF "user" AS $$
+          DECLARE
+            userid  BIGINT;
+          BEGIN
+            IF username IS NULL OR email IS NULL THEN
+              RAISE EXCEPTION 'Username and email must not be null';
+            END IF;
+
+            --- create the user
+            INSERT INTO "user" (username, email, fname, lname, role) VALUES (username, email, fname, lname, role) RETURNING id INTO userid;
+
+            --- create the auth keys
+            --- create the authorization keys or update them if they exist for some reason
+            INSERT INTO "auth_keys" (parentid, clientid, secret) VALUES (userid, username, password)
+              ON CONFLICT (clientid) DO UPDATE
+                SET secret = password, clientid = username, parentid = userid, created = NOW(), disabled = FALSE;
+
+            INSERT INTO "auth_keys" (parentid, clientid, secret) VALUES (userid, email, password)
+              ON CONFLICT (clientid) DO UPDATE
+                SET secret = password, clientid = email, parentid = userid, created = NOW(), disabled = FALSE;
+            
+            RETURN QUERY SELECT * FROM "user" u WHERE u.id = userid LIMIT 1;
+          END;
+        $$ LANGUAGE plpgsql;
+
+        --- FIND USER
+        CREATE OR REPLACE FUNCTION user_find_user (userid BIGINT, uname TEXT, emailAddress TEXT) RETURNS SETOF "user" AS $$
+          BEGIN
+            IF userid IS NOT NULL THEN
+              RETURN QUERY SELECT * FROM "user" u WHERE u.id = userid LIMIT 1;
+            ELSIF uname IS NOT NULL THEN
+              RETURN QUERY SELECT * FROM "user" u WHERE u.username = uname LIMIT 1;
+            ELSE
+              RETURN QUERY SELECT * FROM "user" u WHERE u.email = emailAddress LIMIT 1;
+            END IF;
+          END;
+        $$ LANGUAGE plpgsql;
+
+        --- UPDATE USER
+        CREATE OR REPLACE FUNCTION user_update_user (userid BIGINT, emailAddress TEXT, firstName TEXT, lastName TEXT, userRole TEXT) RETURNS SETOF "user" AS $$
+          BEGIN
+            IF userid IS NULL THEN
+              RAISE EXCEPTION 'Userid is required to update a user';
+            END IF;
+
+            IF NOT EXISTS (SELECT 1 FROM "user" WHERE id = userid) THEN
+              RAISE EXCEPTION 'User does not exist';
+            END IF;
+
+            IF emailAddress IS NOT NULL THEN
+              UPDATE "user" SET email = emailAddress WHERE id = userid;
+            END IF;
+
+            IF firstName IS NOT NULL THEN
+              UPDATE "user" SET fname = firstName WHERE id = userid;
+            END IF;
+
+            IF lastName IS NOT NULL THEN
+              UPDATE "user" SET lname = lastName WHERE id = userid;
+            END IF;
+
+            IF userRole IS NOT NULL THEN
+              UPDATE "user" SET role = userRole WHERE id = userid;
+            END IF;
+
+            RETURN QUERY SELECT * FROM "user" u WHERE id = userid LIMIT 1;
+          END;
+        $$ LANGUAGE plpgsql;
       `).catch(err => {
         console.error(err);
         console.error('Unable to create user table');
@@ -50,10 +121,7 @@ class User {
         };
       }
 
-      const realSecret = query.rows[0]['secret'];
-      const match = await bcrypt.compare(secret, realSecret);
-
-      if (match) {
+      if (await bcrypt.compare(secret, query.rows[0]['secret'])) {
         db.query('UPDATE "auth_keys" k SET lastlogin = NOW() WHERE keyid = $1;', query.rows[0].keyid);
         return {
           status: true,
@@ -75,78 +143,71 @@ class User {
     }
   }
 
-  async getAuthKeys(userid) {
-    try {
-      const query = await db.query('SELECT * FROM "auth_keys" k WHERE k.parentid = $1;', userid);
-      return query.rows;
-    } catch(err) {
-      console.error(err);
-      return [];
-    }
+  async hashPassword(password) {
+    return await bcrypt.hash(
+      password,
+      await bcrypt.genSalt(10),
+    );
   }
 
-  async setPassword(clientid, secret) {
+  async updatePassword(clientid, password) {
     try {
-      const salt = crypto.randomBytes(128).toString('base64');
-      const newPassword = await bcrypt.hash(secret, salt);
-
-      const query = await db.query('UPDATE "auth_keys" SET secret = $2 WHERE clientid = $1 RETURNING *;', [clientid, secret]);
-
-      if (query.rowCount === 0) {
+      if ((await db.query('SELECT keyid FROM "auth_keys" k WHERE k.clientid = $1;', [clientid])).rowCount === 0) {
         return {
           status: false,
-          reason: 'failed to update password',
-        };
-      } else {
-        return {
-          status: true,
-          data: query.rows[0],
+          reason: 'invalid clientid. create the auth key entry first then update its password.',
         };
       }
+
+      const query = await db.query(
+        'UPDATE "auth_keys" SET secret = $2 WHERE clientid = $1 RETURNING *;',
+        [clientid, await this.hashPassword(password)]
+      );
+
+      return (query.rowCount !== 0) ?
+        { status: true, data: query.rows[0], } :
+        { status: false, reason: 'failed to update password' };
     } catch(err) {
-      console.error(err);
       return {
         status: false,
-        reason: 'exception was thrown',
+        reason: 'an exception was thrown',
         error: err,
       };
     }
   }
-
-  async findAuthKeyById(keyid) {
+  async findUser(search) {
     try {
-      const query = await db.query('SELECT * FROM "auth_keys" k WHERE k.keyid = $1;', [keyid]);
+      let queries = [];
+      if (search.userid) queries.push(db.query('SELECT * FROM user_find_user($1, NULL, NULL);', [search.userid]));
+      if (search.username) queries.push(db.query('SELECT * FROM user_find_user(NULL, $1, NULL);', [search.username]));
+      if (search.email) queries.push(db.query('SELECT * FROM user_find_user(NULL, NULL, $1);', [search.email]));
 
-      return (query.rowCount !== 0) ?
-        { status: true, data: query.rows[0], } :
-        { status: false, reason: 'failed to find auth key by the provided id' };
-    } catch(err) {
-      console.error(err);
-      return {
-        status: false,
-        reason: 'exception was thrown',
-        error: err
+      const uidS = await queries[0];
+      if (uidS.rowCount !== 0) return {
+        status: true,
+        data: uidS.rows[0],
       };
-    }
-  }
+      
+      const uidU = await queries[1];
+      if (uidU.rowCount !== 0) return {
+        status: true,
+        data: uidU.rows[0],
+      };
 
-  async newAuthKey(userid, username, password) {
-    try {
-      const clientid = username || crypto.randomBytes(192).toString('base64');
+      const uidE = await queries[2];
+      if (uidE.rowCount !== 0) return {
+        status: true,
+        data: uidE.rows[0],
+      };
 
-      const hashed = await bcrypt.hash(
-        password || crypto.randomBytes(192).toString('base64'),
-        crypto.randomBytes(128).toString('base64')
-      );
-
-      const query = await db.query('INSERT INTO "auth_keys" (parentid, clientid, secret) VALUES ($1, $2, $3) RETURNING *;', [userid, clientid, hashed]);
-
-      return query.rows[0];
+      return {
+        status: true,
+        data: [],
+      };
     } catch(err) {
-      console.error(err);
       return {
         status: false,
-        reason: 'exception was thrown',
+        reason: 'an exception was thrown',
         error: err,
       };
     }
@@ -168,105 +229,35 @@ class User {
     }
   }
 
-  async getUserById(userid) {
-    try {
-      const query = await db.query('SELECT * FROM "user" u WHERE u.id = $1;', [userid]);
-      
-      return (query.rowCount !== 0) ?
-        { status: true, data: query.rows[0], } :
-        { status: false, reason: 'unable to find user by id', };
-    } catch(err) {
-      console.error(err);
-      return {
-        status: false,
-        reason: 'exception was thrown',
-        error: err,
-      };
-    }
-  }
-
-  async getUserByEmail(email) {
-    try {
-      const query = await db.query('SELECT * FROM "user" u WHERE u.email = $1;', [email]);
-      
-      return (query.rowCount !== 0) ?
-        { status: true, data: query.rows[0], } :
-        { status: false, reason: 'unable to find user by email', };
-    } catch(err) {
-      console.error(err);
-      return {
-        status: false,
-        reason: 'exception was thrown',
-        error: err,
-      };
-    }
-  }
-
-  async getUserByUsername(username) {
-    try {
-      const query = await db.query('SELECT * FROM "user" u WHERE u.username = $1;', [username]);
-      
-      return (query.rowCount !== 0) ?
-        { status: true, data: query.rows[0], } :
-        { status: false, reason: 'unable to find user by username', };
-    } catch(err) {
-      console.error(err);
-      return {
-        status: false,
-        reason: 'exception was thrown',
-        error: err,
-      };
-    }
-  }
-
-  async findUser(usernameOrEmail) {
-    try {
-      const searchUsername = await this.getUserByUsername(usernameOrEmail);
-
-      return (searchUsername.status) ?
-        searchUsername :
-        this.getUserByEmail(usernameOrEmail);
-    } catch(err) {
-      console.error(err);
-      return {
-        status: false,
-        reason: 'exception was thrown',
-        error: err,
-      };
-    }
-  }
-
+  // data = {
+  //   username, email, password, fname, lname, role 
+  // }
   async newUser(data) {
     try {
-      if (!data.email || !data.username) return { status: false, reason: 'email and username were not provided', };
+      if (!data.username || !data.email)
+        return { status: false, reason: 'username and email must be provided', };
+      
+      const newUserQuery = await db.query(`
+        SELECT * FROM user_create_user($1, $2, $3, $4, $5, $6);
+      `, [data.username, data.email, data.role || 'user', data.fname, data.lname, 'temporary password']);
 
-      // check if the user already exists
-      const checkUserQuery = await db.query('SELECT * FROM "user" WHERE username = $1 OR email = $2;');
-      if (checkUserQuery.rowCount !== 0)
-        return { status: false, reason: 'username or email already in use', };
+      const p1q = this.updatePassword(data.username, data.password);
+      const p2q = this.updatePassword(data.email, data.password);
 
-      const query = await db.query('INSERT INTO "user" (username, email) VALUES ($1, $2) RETURNING *;', [data.username, data.email]);
-      const row = query.rows[0];
+      const q1 = await p1q;
+      const q2 = await p2q;
 
-      const q2 = await db.query(`
-        BEGIN;
-          UPDATE "user" SET role = $2 WHERE id = $1 AND $2 IS NOT NULL;
-          UPDATE "user" SET fname = $3 WHERE id = $1 AND $3 IS NOT NULL;
-          UPDATE "user" SET lname = $4 WHERE id = $1 AND $4 IS NOT NULL;
-          SELECT * FROM "user" WHERE id = $1;
-        COMMIT;
-      `, [row.id, data.role || 'user', data.fname || '', data.lname || '']);
+      if (!q1.status) return q1;
+      if (!q2.status) return q2;
 
-      // create auth entry for the user
-
-      return (q2.rowCount !== 0) ?
-        { status: true, data: q2.rows[0], } :
-        { status: false, reason: 'unknown failure adding user', };
+      return {
+        status: true,
+        data: (newUserQuery.rowCount !== 0) ? newUserQuery.rows[0] : null,
+      };
     } catch(err) {
-      console.error(err);
       return {
         status: false,
-        reason: 'exception was thrown',
+        reason: 'an exception was thrown',
         error: err,
       };
     }

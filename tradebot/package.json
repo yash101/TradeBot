@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www --unhandled-rejections=strict"
+    "start": "node ./bin/www --unhandled-rejections=strict",
+    "watch": "nodemon ./bin/www --unhandled-rejections=strict"
   },
   "dependencies": {
     "bcrypt": "^5.0.0",

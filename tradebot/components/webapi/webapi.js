@@ -33,7 +33,7 @@ module.exports = (async () => {
 //  app.use(express.static(path.join(__dirname, 'public')));
 
   app.use('/', indexRouter);
-  app.use('/authentication', apiAuth.router);
+  app.use('/auth', apiAuth.router);
 
   // set up the server
   const onError = (error) => {
