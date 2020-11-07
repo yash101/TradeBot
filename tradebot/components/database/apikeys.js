@@ -155,4 +155,4 @@ class ApiKey {
   }
 }
 
-module.exports = ApiKey();
+module.exports = new ApiKey();

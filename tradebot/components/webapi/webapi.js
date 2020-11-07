@@ -11,7 +11,7 @@ const crypto = require('crypto');
 
 const config = require('../database/configuration');
 const indexRouter = require('./index');
-const apiAuth = require('./apiauth');
+const apiAuth = require('./auth');
 
 module.exports = (async () => {
   await config.ready;
