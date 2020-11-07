@@ -4,6 +4,7 @@ const express = require('express');
 
 const db = require('../database/postgres');
 const User = require('../database/users');
+const { catch } = require('./webapi');
 
 passport.serializeUser((auth, done) => {
   done(null, auth.keyid);
@@ -48,24 +49,56 @@ router.post('/register', async (req, res, next) => {
         status: 'failure',
         reason: 'password or username or email was not provided',
       });
+
+      return;
     }
 
     const ret = await User.newUser({
-      username: req.body.username,
-      email: req.body.email,
+      username: req.body.username.toLowerCase(),
+      email: req.body.email.toLowerCase(),
       role: 'user',
       fname: req.body.fname || null,
       lname: req.body.lname || null,
       password: req.body.password,
     });
 
-    if (!ret.status && ret.error)
-      console.error(ret.error);
-    res.status(ret.status ? 200 : 400).json(ret);
+    if (!ret.status)
+      res.status(400).json({
+        status: 'failure',
+        reason: ret.reason,
+      });
   } catch(err) {
-    res.send(err.message);
+    res.status(500).json({
+      status: 'failure',
+      reason: err.message,
+    });
   }
 });
+
+router.post('/login', async (req, res, next) => {
+  try {
+    const clientid = req.body.clientid;
+    const lowercliid = clientid.toLowerCase();
+    const secret = req.body.secret;
+
+    let key = await User.authenticate(clientid, secret);
+    if (!key.status)
+      key = await User.authenticate(lowercliid, secret);
+    
+    if (!key.status) {
+      res.status(401).json({
+        status: 'failure',
+        reason: 'authentication failed',
+      });
+
+      return;
+    }
+
+    
+  } catch(err) {
+  }
+})
+
 
 module.exports = { router };
 

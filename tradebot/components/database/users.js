@@ -187,7 +187,7 @@ class User {
         status: true,
         data: uidS.rows[0],
       };
-      
+
       const uidU = await queries[1];
       if (uidU.rowCount !== 0) return {
         status: true,
