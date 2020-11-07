@@ -94,10 +94,10 @@ router.post('/login', async (req, res, next) => {
       return;
     }
 
-    
+    next();
   } catch(err) {
   }
-})
+}, passport.authenticate('login'));
 
 
 module.exports = { router };
