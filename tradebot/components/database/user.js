@@ -71,25 +71,24 @@ class User {
         { status: true, data: q.rows[0], } :
         { status: false, reason: 'failed to create user', };
     } catch(err) {
-      console.error('Error ocurred when generating API Key:');
-      console.error(err.message);
       return {
         status: false,
-        reason: 'an exception was thrown when creating the API key',
-        error(err);
+        reason: 'an exception was thrown when creating the user',
+        error: err,
       }
     }
   }
 
   async find(userid, username, email) {
     try {
-      return (await db.query(
-        'SELECT * FROM "user" WHERE id = $1 OR username = $2 OR email = $3;',
-        [userid, username, email],
-      )).rows;
+      return {
+        status: true,
+        data: (await db.query(
+          'SELECT * FROM "user" WHERE id = $1 OR username = $2 OR email = $3;',
+          [userid, username, email],
+        )).rows,
+      };
     } catch(err) {
-      console.error('Error ocurred when generating API Key:');
-      console.error(err.message);
       return {
         status: false,
         reason: 'an exception was thrown when creating the API key',
@@ -126,8 +125,6 @@ class User {
         { status: true, data: query.rows[0], } :
         { status: false, reason: 'failed to update user', };
     } catch(err) {
-      console.error('Error ocurred when generating API Key:');
-      console.error(err.message);
       return {
         status: false,
         reason: 'an exception was thrown when creating the API key',

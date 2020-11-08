@@ -18,7 +18,7 @@ class ApiKey {
           keyid   BIGINT      GENERATED ALWAYS AS IDENTITY  UNIQUE,
           secret  TEXT        NOT NULL,
           owner   BIGINT      NOT NULL                      UNIQUE,
-          created TIMESTAMPZ  NOT NULL    DEFAULT current_timestamp,
+          created TIMESTAMPTZ NOT NULL    DEFAULT current_timestamp,
           scopes  TEXT,
 
           CONSTRAINT fk_owner
