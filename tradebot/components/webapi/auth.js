@@ -7,9 +7,11 @@ const ApiKey = require('../database/apikeys');
 const config = require('../database/configuration');
 
 passport.serializeUser((auth, done) => {
+  done(null, auth);
 });
 
-passport.deserializeUser((keyid, done) => {
+passport.deserializeUser((auth, done) => {
+  done(null, auth);
 });
 
 passport.use('apikey-local', new LocalStrategy(
@@ -18,11 +20,12 @@ passport.use('apikey-local', new LocalStrategy(
     passwordField: 'secret',
   },
   async (apikey, secret, done) => {
-    const key = await ApiKey.authenticate(apikey, secret);
-    if (!key.status) {
-      return done(key.error || key.message || 'unknown error');
-    }
-    return done(null, { type: 'apikey', keyid: key.keyid, userid: key.parentid, scopes: key.scopes, });
+    // compelte: get the userid and scopes
+    ApiKey.authenticate(apikey, secret).then(key => {
+      return (key.status) ?
+        done(null, { type: 'apikey', keyid: apikey, userid: key.data.parentid, scopes: key.data.scopes, }) :
+        done(key.reason);
+    });
   }
 ));
 
@@ -31,12 +34,12 @@ passport.use('user-local', new LocalStrategy(
     usernameField: 'username',
     passwordField: 'password',
   },
-  async (username, password, done) => {
-    const user = await User.authenticate(username, password);
-    if (!user.status) {
-      return done(user.error || user.message || 'unknown authentication error');
-    }
-    return done(null, { type: 'user', keyid: null, userid: user.id, scopes: null, });
+  (username, password, done) => {
+    User.authenticate(username, password).then(user => {
+      return (user.status) ?
+        done(null, { type: 'user', keyid: null, userid: user.data.id, scopes: null, }) :
+        done(user.reason);
+    });
   }
 ));
 
@@ -76,29 +79,35 @@ router.post('/register', async (req, res, next) => {
   } catch(err) {
     res.status(500).json({
       status: false,
-      reason: err.message || 'unknown error',
+      reason: err.reason || 'unknown error',
     });
   }
 });
 
-router.post('/login/api', (req, res, next) => {
-  passport.authenticate('apikey-local', (err, user, info) => {
-    if (err) { return next(err); };
-    req.logIn(user, err => { if (err) return next(err); });
-  })(req, res, next);
-});
+router.post(
+  '/login/api',
+  (req, res, next) => {
+    passport.authenticate('apikey-local', (err, user, info) => {
+      return (err) ?
+        res.status(401).json({ status: false, message: 'authentication failure', error: err, user: null, }) :
+        res.status(200).json({ status: true, message: 'authentication successful', user: user, });
+    })(req, res, next);
+  }
+);
 
-router.post('/login/user', (req, res, next) => {
-  passport.authenticate('user-local', (err, user, info) => {
-    if (err) { return next(err); };
-    req.logIn(user, err => { if (err) return next(err); });
-  })(req, res, next);
-});
+router.post(
+  '/login/user',
+  (req, res, next) => {
+    passport.authenticate('user-local', (err, user, info) => {
+      return (err) ?
+        res.status(401).json({ status: false, message: 'authentication failure', error: err, user: null, }) :
+        res.status(200).json({ status: true, message: 'authentication successful', user: user, });
+    })(req, res, next);
+  }
+);
 
-module.exports = { router };
-
-// create an admin user
-(async () => {
+// create a default root user
+const rootUserReady = (async () => {
   await Promise.all([
     User.ready,
     config.ready,
@@ -107,7 +116,13 @@ module.exports = { router };
   const username = (await config.get('root.username', process.env.DEFAULT_ADMIN_USERNAME || 'root')).val;
   const existingUser = await User.find(null, username, null);
 
-  if (existingUser.length !== 0)
+  if (!existingUser.status) {
+    console.error('Failed to create root user');
+    console.error(existingUser.error || existingUser.reason);
+    process.exit(-1);
+  }
+
+  if (existingUser.data.length !== 0)
     return;
   
   const u = await User.create({
@@ -123,4 +138,31 @@ module.exports = { router };
     username: username,
     password: process.env.DEFAULT_ADMIN_PASSWORD || 'password',
   });
+
+  return true;
+})();
+
+module.exports = { router, rootUserReady };
+
+// test
+// create an auth key
+(async () => {
+  await rootUserReady;
+  await User.ready;
+  await ApiKey.ready;
+
+  const username = (await config.get('root.username')).val;
+  const adminUser = await User.find(null, username, null);
+
+  if (!adminUser.status) {
+    return;
+  }
+
+  const keys = await ApiKey.list(adminUser.data[0].id);
+  if (keys.status && keys.data.length === 0) {
+    console.log('creating an auth key if it doesnt exist');
+    const key = await ApiKey.generate(adminUser.data[0].id);
+    console.log(key);
+  }
+
 })();

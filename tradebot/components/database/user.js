@@ -29,24 +29,23 @@ class User {
   async authenticate(usernameEmail, password) {
     try {
       const query = await db.query('SELECT * FROM "user" WHERE username = $1 OR email = $1;', [usernameEmail]);
-      for (let i = 0; i = query.rows.length; i++) {
-        if (await bcrypt.compare(password, query.rows[i].password)) {
-          return {
-            status: true,
-            data: query.rows[i],
-          };
-        }
-      }
-      return {
-        status: false,
-        reason: 'authentication failure',
-      };
+
+      let authUser = null;
+
+      await Promise.all(query.rows.map(async (user) => {
+        if (authUser !== null) return; // skip
+        const match = await bcrypt.compare(password, user.password);
+        if (match) authUser = user;
+      }));
+
+      return (authUser === null) ?
+        { status: false, reason: 'authentication failure', } :
+        { status: true, data: authUser, };
+
     } catch(err) {
-      console.error('Error ocurred when generating API Key:');
-      console.error(err.message);
       return {
         status: false,
-        reason: 'an exception was thrown when creating the API key',
+        reason: 'an exception was thrown when authenticating: ',
         error: err,
       };
     }
@@ -91,7 +90,7 @@ class User {
     } catch(err) {
       return {
         status: false,
-        reason: 'an exception was thrown when creating the API key',
+        reason: 'an exception was thrown when searching for the user',
         error: err,
       }
     }

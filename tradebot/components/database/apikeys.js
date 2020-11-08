@@ -34,8 +34,9 @@ class ApiKey {
 
   async generate(userid) {
     try {
-      const secret = bcrypt.hash(crypto.randomBytes(int(128 * 2 / 3)).toString('base64'), 10);
-      const checkIfUseridValid = await db.query('SELECT 1 FROM "user" WHERE id = $1;', [userid]);
+      const secret = crypto.randomBytes(Number(64)).toString('base64');
+      const hashedSecret = bcrypt.hash(secret, 10);
+      const checkIfUseridValid = await db.query('SELECT * FROM "user" WHERE id = $1;', [userid]);
 
       if (checkIfUseridValid.rowCount === 0) {
         return {
@@ -46,12 +47,20 @@ class ApiKey {
 
       const addKey = await db.query(
         'INSERT INTO "apikey" (secret, owner, scopes) VALUES ($1, $2, $3) RETURNING *;',
-        [await secret, userid, JSON.stringify([])]
+        [await hashedSecret, userid, JSON.stringify([])]
       );
 
-      return (addKey.rowCount !== 0) ?
-        { status: true, data: decodeScopes(addKey.rows[0]), } :
-        { status: false, reason: 'Failed to create API key'};
+      if (addKey.rowCount === 0)
+        return { status: false, reason: 'Failed to create API key'};
+
+      return {
+        status: true,
+        data: {
+          secret: secret,
+          user: decodeScopes(addKey.rows[0]),
+        },
+      };
+
     } catch(err) {
       console.error('Error ocurred when generating API Key:');
       console.error(err.message);
