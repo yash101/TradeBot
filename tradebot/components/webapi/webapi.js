@@ -70,7 +70,7 @@ module.exports = (async () => {
   };
 
   const port = parseInt((
-    await config.get('webapi.port', process.env.WEBAPI_PORT || '3000')
+    await config.get('webapi.port', process.env.WEBAPI_PORT || '8080')
   ).val);
 
   app.set('port', port);

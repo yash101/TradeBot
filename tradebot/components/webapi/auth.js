@@ -143,26 +143,3 @@ const rootUserReady = (async () => {
 })();
 
 module.exports = { router, rootUserReady };
-
-// test
-// create an auth key
-(async () => {
-  await rootUserReady;
-  await User.ready;
-  await ApiKey.ready;
-
-  const username = (await config.get('root.username')).val;
-  const adminUser = await User.find(null, username, null);
-
-  if (!adminUser.status) {
-    return;
-  }
-
-  const keys = await ApiKey.list(adminUser.data[0].id);
-  if (keys.status && keys.data.length === 0) {
-    console.log('creating an auth key if it doesnt exist');
-    const key = await ApiKey.generate(adminUser.data[0].id);
-    console.log(key);
-  }
-
-})();
