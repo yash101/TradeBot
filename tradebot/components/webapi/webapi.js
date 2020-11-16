@@ -25,7 +25,7 @@ module.exports = (async () => {
   app.use(expressSession({
     secret: (await config.get('session.secret', crypto.randomBytes(64).toString('base64'))).val,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
   }));
   app.use(passport.initialize());
   app.use(passport.session());
