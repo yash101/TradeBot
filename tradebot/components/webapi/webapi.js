@@ -1,12 +1,9 @@
 const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
 const expressSession = require('express-session');
 const debug = require('debug')('tradebot:webapi');
 const logger = require('morgan');
 const http = require('http');
 const passport = require('passport');
-const cors = require('cors');
 const crypto = require('crypto');
 
 const config = require('../database/configuration');
@@ -19,9 +16,25 @@ module.exports = (async () => {
   let app = express();
 
   app.use(logger('dev'));
-  app.use(cors({
-    credentials: true,
-  }));
+  app.use((req, res, next) => {
+    res.set({
+      'Access-Control-Allow-Origin': req.get('Origin') || '*',
+      'Access-Control-Allow-Headers': 'content-type',
+      'Access-Control-Allow-Methods': 'GET,PUT,HEAD,PUT,PATCH,POST,DELETE',
+      'Access-Control-Allow-Credentials': true,
+    });
+
+    if (req && req.method && req.method.toUpperCase && req.method.toUpperCase() === 'OPTIONS') {
+      res.set({
+        'Content-Length': 0,
+      });
+
+      res.statusCode = 204;
+      return res.end();
+    }
+
+    next();
+  });
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(expressSession({
@@ -31,7 +44,6 @@ module.exports = (async () => {
   }));
   app.use(passport.initialize());
   app.use(passport.session());
-  app.use(cookieParser());
 //  app.use(express.static(path.join(__dirname, 'public')));
 
   app.use('/', indexRouter);

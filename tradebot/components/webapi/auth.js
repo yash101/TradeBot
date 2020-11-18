@@ -18,13 +18,14 @@ passport.use('apikey-local', new LocalStrategy(
   {
     usernameField: 'apikey',
     passwordField: 'secret',
+    session: true,
   },
   async (apikey, secret, done) => {
     // compelte: get the userid and scopes
     ApiKey.authenticate(apikey, secret).then(key => {
       return (key.status) ?
         done(null, { type: 'apikey', keyid: apikey, userid: key.data.parentid, scopes: key.data.scopes, }) :
-        done(key.reason);
+        done(key.reason, false);
     });
   }
 ));
@@ -33,6 +34,7 @@ passport.use('user-local', new LocalStrategy(
   {
     usernameField: 'username',
     passwordField: 'password',
+    session: true,
   },
   (username, password, done) => {
     User.authenticate(username, password).then(user => {
@@ -88,9 +90,15 @@ router.post(
   '/login/api',
   (req, res, next) => {
     passport.authenticate('apikey-local', (err, user, info) => {
-      return (err) ?
-        res.status(401).json({ status: false, message: 'authentication failure', error: err, user: null, }) :
-        res.status(200).json({ status: true, message: 'authentication successful', user: user, });
+      if (!err) {
+        req.logIn(user, err => {
+          return (err) ?
+            res.status(401).json({ status: false, message: 'authentication failure', error: err, user: null, }) :
+            res.status(200).json({ status: true, message: 'authentication successful', user: user, });
+        });
+      } else {
+        return res.status(200).json({ status: true, message: 'authentication successful', user: user, });
+      }
     })(req, res, next);
   }
 );
@@ -99,12 +107,27 @@ router.post(
   '/login/user',
   (req, res, next) => {
     passport.authenticate('user-local', (err, user, info) => {
-      return (err) ?
-        res.status(401).json({ status: false, message: 'authentication failure', error: err, user: null, }) :
-        res.status(200).json({ status: true, message: 'authentication successful', user: user, });
+      if (!err) {
+        req.logIn(user, error => {
+          return (error) ?
+            res.status(401).json({ status: false, message: 'authentication failure', error: error, user: null, }) :
+            res.status(200).json({ status: true, message: 'authentication successful', user: user, });
+        });
+      } else {
+        return res.status(200).json({ status: true, message: 'authentication successful', user: user, });
+      }
     })(req, res, next);
   }
 );
+
+router.get('/is_authenticated', (req, res, next) => {
+  return res.status(req.user ? 200 : 401)
+  .json(
+    (req.user) ?
+      { status: true, } :
+      { status: false, error: 'Not logged in', },
+  );
+});
 
 // create a default root user
 const rootUserReady = (async () => {
