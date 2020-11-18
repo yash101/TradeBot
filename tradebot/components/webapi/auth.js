@@ -40,7 +40,7 @@ passport.use('user-local', new LocalStrategy(
     User.authenticate(username, password).then(user => {
       return (user.status) ?
         done(null, { type: 'user', keyid: null, userid: user.data.id, scopes: null, }) :
-        done(user.reason);
+        done(user.reason, false);
     });
   }
 ));
@@ -97,7 +97,7 @@ router.post(
             res.status(200).json({ status: true, message: 'authentication successful', user: user, });
         });
       } else {
-        return res.status(200).json({ status: true, message: 'authentication successful', user: user, });
+        return res.status(401).json({ status: false, message: 'authentication failure', error: null, user: null, });
       }
     })(req, res, next);
   }
@@ -114,7 +114,7 @@ router.post(
             res.status(200).json({ status: true, message: 'authentication successful', user: user, });
         });
       } else {
-        return res.status(200).json({ status: true, message: 'authentication successful', user: user, });
+        return res.status(401).json({ status: false, message: 'authentication failure', error: null, user: null, });
       }
     })(req, res, next);
   }
@@ -127,6 +127,11 @@ router.get('/is_authenticated', (req, res, next) => {
       { status: true, } :
       { status: false, error: 'Not logged in', },
   );
+});
+
+router.get('/logout', (req, res, next) => {
+  req.logOut();
+  return res.status(200).json({ status: true });
 });
 
 // create a default root user
