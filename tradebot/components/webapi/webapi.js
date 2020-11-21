@@ -9,9 +9,11 @@ const crypto = require('crypto');
 const config = require('../database/configuration');
 const indexRouter = require('./index');
 const apiAuth = require('./auth');
+const userRouter = require('./user');
 
 module.exports = (async () => {
   await config.ready;
+  await userRouter;
 
   let app = express();
 
@@ -48,6 +50,7 @@ module.exports = (async () => {
 
   app.use('/', indexRouter);
   app.use('/auth', apiAuth.router);
+  app.use('/user', (await userRouter).router);
 
   // set up the server
   const onError = (error) => {
