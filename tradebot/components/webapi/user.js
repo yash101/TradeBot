@@ -1,6 +1,6 @@
 const express = require('express');
 const User = require('../database/user');
-const ApiKey = require('../database/apikeys');
+const ApiKey = require('../database/apikey');
 
 module.exports = (async () => {
   const router = express.Router();

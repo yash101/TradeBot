@@ -3,7 +3,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const db = require('../database/postgres');
 const User = require('../database/user');
-const ApiKey = require('../database/apikeys');
+const ApiKey = require('../database/apikey');
 const config = require('../database/configuration');
 
 passport.serializeUser((auth, done) => {
